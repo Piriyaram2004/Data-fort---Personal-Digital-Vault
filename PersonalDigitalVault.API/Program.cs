@@ -18,7 +18,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 // OpenAPI
 builder.Services.AddOpenApi();
-
+builder.Services.AddSwaggerGen();
 
 // ==============================
 // Build Application
@@ -35,6 +35,8 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
 // Redirect HTTP to HTTPS
