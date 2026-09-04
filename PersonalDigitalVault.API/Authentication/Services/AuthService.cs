@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using PersonalDigitalVault.API.Authentication.DTOs;
+using PersonalDigitalVault.API.Authentication.Helpers;
 using PersonalDigitalVault.API.Models;
 using PersonalDigitalVault.API.Repositories.Interfaces;
 
@@ -10,15 +11,18 @@ namespace PersonalDigitalVault.API.Authentication.Services
         private readonly IUserRepository _userRepository;
         private readonly IRoleRepository _roleRepository;
         private readonly IPasswordHasher<User> _passwordHasher;
+        private readonly JwtTokenHelper _jwtTokenHelper;
 
         public AuthService(
             IUserRepository userRepository,
             IRoleRepository roleRepository,
-            IPasswordHasher<User> passwordHasher)
+            IPasswordHasher<User> passwordHasher,
+            JwtTokenHelper jwtTokenHelper)
         {
             _userRepository = userRepository;
             _roleRepository = roleRepository;
             _passwordHasher = passwordHasher;
+            _jwtTokenHelper = jwtTokenHelper;
         }
 
         public async Task<RegisterResponseDto> RegisterAsync(
@@ -56,7 +60,9 @@ namespace PersonalDigitalVault.API.Authentication.Services
             };
 
             user.PasswordHash =
-                _passwordHasher.HashPassword(user, request.Password);
+                _passwordHasher.HashPassword(
+                    user,
+                    request.Password);
 
             await _userRepository.AddAsync(user);
 
@@ -67,6 +73,43 @@ namespace PersonalDigitalVault.API.Authentication.Services
                 UserName = user.UserName,
                 FullName = user.FullName,
                 Role = userRole.RoleName
+            };
+        }
+
+        public async Task<LoginResponseDto> LoginAsync(
+            LoginRequestDto request)
+        {
+            var user = await _userRepository
+                .GetByEmailAsync(request.Email.Trim());
+
+            if (user == null || !user.IsActive)
+            {
+                throw new UnauthorizedAccessException(
+                    "Invalid email or password.");
+            }
+
+            var passwordResult =
+                _passwordHasher.VerifyHashedPassword(
+                    user,
+                    user.PasswordHash,
+                    request.Password);
+
+            if (passwordResult == PasswordVerificationResult.Failed)
+            {
+                throw new UnauthorizedAccessException(
+                    "Invalid email or password.");
+            }
+
+            var token = _jwtTokenHelper.GenerateToken(user);
+
+            return new LoginResponseDto
+            {
+                UserId = user.UserId,
+                Email = user.Email,
+                UserName = user.UserName,
+                FullName = user.FullName,
+                Role = user.Role.RoleName,
+                Token = token
             };
         }
     }
