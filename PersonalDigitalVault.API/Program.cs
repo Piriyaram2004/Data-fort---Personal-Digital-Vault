@@ -1,5 +1,11 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using PersonalDigitalVault.API.Authentication.Services;
+using PersonalDigitalVault.API.Authentication.Validators;
 using PersonalDigitalVault.API.Data;
+using PersonalDigitalVault.API.Models;
+using PersonalDigitalVault.API.Repositories.Implementations;
+using PersonalDigitalVault.API.Repositories.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +22,16 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
         builder.Configuration.GetConnectionString("DefaultConnection")
     ));
 
+// ==============================
+// Authentication Module DI
+// ==============================
+
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IRoleRepository, RoleRepository>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
+builder.Services.AddScoped<RegisterRequestValidator>();
+
 // OpenAPI
 builder.Services.AddOpenApi();
 builder.Services.AddSwaggerGen();
@@ -26,6 +42,17 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+// ==============================
+// Initialize Required Database Data
+// ==============================
+
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider
+        .GetRequiredService<ApplicationDbContext>();
+
+    await DbInitializer.InitializeRolesAsync(dbContext);
+}
 
 // ==============================
 // HTTP Request Pipeline
