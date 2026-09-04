@@ -1,4 +1,5 @@
-﻿using PersonalDigitalVault.API.Authentication.DTOs;
+﻿using System.Net.Mail;
+using PersonalDigitalVault.API.Authentication.DTOs;
 
 namespace PersonalDigitalVault.API.Authentication.Validators
 {
@@ -11,6 +12,22 @@ namespace PersonalDigitalVault.API.Authentication.Validators
             if (string.IsNullOrWhiteSpace(request.Email))
             {
                 errors.Add("Email is required.");
+            }
+            else
+            {
+                try
+                {
+                    var emailAddress = new MailAddress(request.Email);
+
+                    if (emailAddress.Address != request.Email)
+                    {
+                        errors.Add("Invalid email format.");
+                    }
+                }
+                catch
+                {
+                    errors.Add("Invalid email format.");
+                }
             }
 
             if (string.IsNullOrWhiteSpace(request.UserName))
