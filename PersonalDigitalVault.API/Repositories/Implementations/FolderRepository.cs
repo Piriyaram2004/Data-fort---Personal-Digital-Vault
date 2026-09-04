@@ -29,9 +29,10 @@ namespace PersonalDigitalVault.API.Repositories.Implementations
                 !f.IsDeleted);
         }
         // Get or Find the Folder ...
-        public  async Task<Folder?> GetByIdAsync(int folderId)
+        public  async Task<Folder?> GetByIdAsync(int folderId) 
         {
-            return await _context.Folders.FirstOrDefaultAsync(f => f.FolderId == folderId);
+            return await _context.Folders.FirstOrDefaultAsync(f => f.FolderId == folderId &&
+             !f.IsDeleted); // Soft delete condition to exclude deleted folders . 
         }
     }
 }
