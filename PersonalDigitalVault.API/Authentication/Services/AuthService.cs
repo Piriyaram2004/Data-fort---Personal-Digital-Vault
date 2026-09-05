@@ -12,17 +12,26 @@ namespace PersonalDigitalVault.API.Authentication.Services
         private readonly IRoleRepository _roleRepository;
         private readonly IPasswordHasher<User> _passwordHasher;
         private readonly JwtTokenHelper _jwtTokenHelper;
+        private readonly IPasswordResetTokenRepository _passwordResetTokenRepository;
+        private readonly PasswordResetTokenHelper _passwordResetTokenHelper;
+        private readonly IEmailService _emailService;
 
         public AuthService(
             IUserRepository userRepository,
             IRoleRepository roleRepository,
             IPasswordHasher<User> passwordHasher,
-            JwtTokenHelper jwtTokenHelper)
+            JwtTokenHelper jwtTokenHelper,
+            IPasswordResetTokenRepository passwordResetTokenRepository,
+            PasswordResetTokenHelper passwordResetTokenHelper,
+            IEmailService emailService)
         {
             _userRepository = userRepository;
             _roleRepository = roleRepository;
             _passwordHasher = passwordHasher;
             _jwtTokenHelper = jwtTokenHelper;
+            _passwordResetTokenRepository = passwordResetTokenRepository;
+            _passwordResetTokenHelper = passwordResetTokenHelper;
+            _emailService = emailService;
         }
 
         public async Task<RegisterResponseDto> RegisterAsync(
@@ -111,6 +120,46 @@ namespace PersonalDigitalVault.API.Authentication.Services
                 Role = user.Role.RoleName,
                 Token = token
             };
+        }
+
+        public async Task ForgotPasswordAsync(
+        ForgotPasswordRequestDto request)
+        {
+            var user = await _userRepository
+                .GetByEmailAsync(request.Email.Trim());
+
+            if (user == null || !user.IsActive)
+            {
+                return;
+            }
+
+            var rawToken =
+                _passwordResetTokenHelper.GenerateToken();
+
+            var tokenHash =
+                _passwordResetTokenHelper.HashToken(rawToken);
+
+            var resetToken = new PasswordResetToken
+            {
+                UserId = user.UserId,
+                TokenHash = tokenHash,
+                ExpiresAt = DateTime.UtcNow.AddMinutes(15),
+                IsUsed = false,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            await _passwordResetTokenRepository
+                .AddAsync(resetToken);
+
+            var resetLink =
+                $"http://localhost:4200/reset-password?token={Uri.EscapeDataString(rawToken)}&email={Uri.EscapeDataString(user.Email)}";
+
+            await _emailService.SendPasswordResetEmailAsync(
+                user.Email,
+                resetLink);
+
+            // Raw token is used only in the reset link.
+            // Do not store, return, or log the raw token.
         }
     }
 }
