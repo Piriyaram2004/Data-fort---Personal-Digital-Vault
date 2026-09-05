@@ -9,5 +9,8 @@ namespace PersonalDigitalVault.API.SecureVault.Services
         Task<Folder?> CreateFolderAsync(
       CreateFolderRequest request,
       int userId);
+
+        Task<List<Folder>> GetFoldersAsync(int userId);
     }
+
 }

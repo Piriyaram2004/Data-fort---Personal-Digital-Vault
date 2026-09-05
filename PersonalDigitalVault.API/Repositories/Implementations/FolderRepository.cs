@@ -1,4 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using PersonalDigitalVault.API.Data;
 using PersonalDigitalVault.API.Models;
 using PersonalDigitalVault.API.Repositories.Interfaces;
@@ -41,6 +44,14 @@ namespace PersonalDigitalVault.API.Repositories.Implementations
             return await _context.Folders.FirstOrDefaultAsync(f =>
                 f.FolderId == folderId &&
                 !f.IsDeleted);
+        }
+
+        // Get active folders for a user
+        public async Task<List<Folder>> GetByUserIdAsync(int userId)
+        {
+            return await _context.Folders
+                .Where(f => f.UserId == userId && !f.IsDeleted)
+                .ToListAsync();
         }
     }
 }

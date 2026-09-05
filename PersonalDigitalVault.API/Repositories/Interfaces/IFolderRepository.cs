@@ -12,5 +12,7 @@ namespace PersonalDigitalVault.API.Repositories.Interfaces
             string normalizedFolderName);
 
         Task AddAsync(Folder folder);
+
+        Task<List<Folder>> GetByUserIdAsync(int userId);
     }
 }
