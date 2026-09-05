@@ -11,7 +11,8 @@ namespace PersonalDigitalVault.API.Administration.Controllers
     {
         private readonly IAdminDashboardService _adminDashboardService;
 
-        public AdminDashboardController(IAdminDashboardService adminDashboardService)
+        public AdminDashboardController(
+            IAdminDashboardService adminDashboardService)
         {
             _adminDashboardService = adminDashboardService;
         }
@@ -19,9 +20,10 @@ namespace PersonalDigitalVault.API.Administration.Controllers
         [HttpGet]
         public async Task<IActionResult> GetDashboard()
         {
-            var dashboard = await _adminDashboardService.GetDashboardAsync();
+            var dashboard =
+                await _adminDashboardService.GetDashboardAsync();
 
             return Ok(dashboard);
         }
     }
-
+}   

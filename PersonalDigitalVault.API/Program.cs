@@ -55,6 +55,9 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IAdminUserRepository, AdminUserRepository>();
 builder.Services.AddScoped<IAdminUserService, AdminUserService>();
 
+builder.Services.AddScoped<IAdminDashboardRepository, AdminDashboardRepository>();
+builder.Services.AddScoped<IAdminDashboardService, AdminDashboardService>();
+
 // ==============================
 // Public Sharing Module DI
 // ==============================
