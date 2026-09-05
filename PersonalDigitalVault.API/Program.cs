@@ -42,7 +42,11 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddScoped<RegisterRequestValidator>();
 builder.Services.AddScoped<LoginRequestValidator>();
+builder.Services.AddScoped<ForgotPasswordRequestValidator>();
 builder.Services.AddScoped<JwtTokenHelper>();
+builder.Services.AddScoped<IPasswordResetTokenRepository, PasswordResetTokenRepository>();
+builder.Services.AddScoped<PasswordResetTokenHelper>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 // ==============================
 // Administration Module DI
