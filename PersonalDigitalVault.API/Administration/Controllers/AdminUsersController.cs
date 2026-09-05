@@ -7,7 +7,7 @@ namespace PersonalDigitalVault.API.Administration.Controllers
 {
     [ApiController]
     [Route("api/admin/users")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Administrator")]
     public class AdminUsersController : ControllerBase
     {
         private readonly IAdminUserService _adminUserService;
