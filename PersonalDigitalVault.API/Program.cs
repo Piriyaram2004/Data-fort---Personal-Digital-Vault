@@ -10,6 +10,7 @@ using PersonalDigitalVault.API.Data;
 using PersonalDigitalVault.API.Models;
 using PersonalDigitalVault.API.Repositories.Implementations;
 using PersonalDigitalVault.API.Repositories.Interfaces;
+using PersonalDigitalVault.API.Administration.Services;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -38,6 +39,13 @@ builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddScoped<RegisterRequestValidator>();
 builder.Services.AddScoped<LoginRequestValidator>();
 builder.Services.AddScoped<JwtTokenHelper>();
+
+// ==============================
+// Administration Module DI
+// ==============================
+
+builder.Services.AddScoped<IAdminUserRepository, AdminUserRepository>();
+builder.Services.AddScoped<IAdminUserService, AdminUserService>();
 
 
 // ==============================
@@ -94,6 +102,11 @@ builder.Services.AddSwaggerGen(options =>
             Description = "Enter your JWT token."
         });
 
+    options.AddSecurityRequirement(document =>
+        new OpenApiSecurityRequirement
+        {
+            [new OpenApiSecuritySchemeReference("Bearer", document)] = []
+        });
 });
 
 // ==============================
