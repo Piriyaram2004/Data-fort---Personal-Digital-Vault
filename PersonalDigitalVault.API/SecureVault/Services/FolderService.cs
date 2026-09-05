@@ -81,5 +81,10 @@ namespace PersonalDigitalVault.API.SecureVault.Services
             // 8. Return the newly created folder
             return folder;
         }
+        public async Task<List<Folder>> GetFoldersAsync(int userId)
+        {
+            return await _folderRepository.GetByUserIdAsync(userId);
+        }
+
     }
 }
