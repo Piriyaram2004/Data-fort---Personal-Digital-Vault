@@ -60,7 +60,8 @@ namespace PersonalDigitalVault.API.PublicSharing.Services.Implementations
             };
         }
 
-        public async Task<List<ShareLinkDto>> GetShareLinksAsync(int userId)
+        public async Task<List<ShareLinkDto>> GetShareLinksAsync(
+            int userId)
         {
             var shareLinks = await _shareLinkRepository
                 .GetByUserIdAsync(userId);
@@ -75,5 +76,73 @@ namespace PersonalDigitalVault.API.PublicSharing.Services.Implementations
                 CreatedAt = shareLink.CreatedAt
             }).ToList();
         }
+
+        public async Task<ShareLinkDto?> UpdateShareLinkAsync(
+            int userId,
+            int shareLinkId,
+            DateTime? expiresAt)
+        {
+            if (expiresAt.HasValue &&
+                expiresAt.Value <= DateTime.UtcNow)
+            {
+                return null;
+            }
+
+            var shareLink = await _shareLinkRepository
+                .GetByIdAndUserIdAsync(shareLinkId, userId);
+
+            if (shareLink == null)
+            {
+                return null;
+            }
+
+            shareLink.ExpiresAt = expiresAt;
+
+            await _shareLinkRepository.UpdateAsync(shareLink);
+
+            return new ShareLinkDto
+            {
+                ShareLinkId = shareLink.ShareLinkId,
+                DocumentId = shareLink.DocumentId,
+                ShareToken = shareLink.ShareToken,
+                ExpiresAt = shareLink.ExpiresAt,
+                IsRevoked = shareLink.IsRevoked,
+                CreatedAt = shareLink.CreatedAt
+            };
+        }
+        public async Task<ShareLinkDto?> RevokeShareLinkAsync(
+         int userId,
+         int shareLinkId)
+        {
+            var shareLink = await _shareLinkRepository
+                .GetByIdAndUserIdAsync(shareLinkId, userId);
+
+            if (shareLink == null)
+            {
+                return null;
+            }
+
+            if (shareLink.IsRevoked)
+            {
+                return null;
+            }
+
+            shareLink.IsRevoked = true;
+            shareLink.RevokedAt = DateTime.UtcNow;
+
+            await _shareLinkRepository.UpdateAsync(shareLink);
+
+            return new ShareLinkDto
+            {
+                ShareLinkId = shareLink.ShareLinkId,
+                DocumentId = shareLink.DocumentId,
+                ShareToken = shareLink.ShareToken,
+                ExpiresAt = shareLink.ExpiresAt,
+                IsRevoked = shareLink.IsRevoked,
+                CreatedAt = shareLink.CreatedAt
+            };
+        }
+
+
     }
 }

@@ -81,5 +81,75 @@ namespace PersonalDigitalVault.API.PublicSharing.Controllers
             return Ok(result);
         }
 
+
+
+        [HttpPost("{id}/revoke")]
+        public async Task<IActionResult> RevokeShareLink(int id)
+        {
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (!int.TryParse(userIdClaim, out var userId))
+            {
+                return Unauthorized(new
+                {
+                    message = "Invalid user authentication."
+                });
+            }
+
+            var result = await _shareService
+                .RevokeShareLinkAsync(userId, id);
+
+            if (result == null)
+            {
+                return NotFound(new
+                {
+                    message = "Share link not found or access denied."
+                });
+            }
+
+            return Ok(result);
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateShareLink(
+         int id,
+         [FromBody] UpdateShareLinkDto request)
+        {
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (!int.TryParse(userIdClaim, out var userId))
+            {
+                return Unauthorized(new
+                {
+                    message = "Invalid user authentication."
+                });
+            }
+
+            if (request.ExpiresAt.HasValue &&
+                request.ExpiresAt.Value <= DateTime.UtcNow)
+            {
+                return BadRequest(new
+                {
+                    message = "Expiry date and time must be in the future."
+                });
+            }
+
+            var result = await _shareService
+                .UpdateShareLinkAsync(
+                    userId,
+                    id,
+                    request.ExpiresAt);
+
+            if (result == null)
+            {
+                return NotFound(new
+                {
+                    message = "Share link not found or access denied."
+                });
+            }
+
+            return Ok(result);
+        }
+
     }
 }
