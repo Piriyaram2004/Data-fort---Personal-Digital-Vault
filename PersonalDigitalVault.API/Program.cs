@@ -1,11 +1,17 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi;
+using PersonalDigitalVault.API.Authentication.Helpers;
 using PersonalDigitalVault.API.Authentication.Services;
 using PersonalDigitalVault.API.Authentication.Validators;
 using PersonalDigitalVault.API.Data;
 using PersonalDigitalVault.API.Models;
 using PersonalDigitalVault.API.Repositories.Implementations;
 using PersonalDigitalVault.API.Repositories.Interfaces;
+using PersonalDigitalVault.API.Administration.Services;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,10 +37,77 @@ builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddScoped<RegisterRequestValidator>();
+builder.Services.AddScoped<LoginRequestValidator>();
+builder.Services.AddScoped<JwtTokenHelper>();
+
+// ==============================
+// Administration Module DI
+// ==============================
+
+builder.Services.AddScoped<IAdminUserRepository, AdminUserRepository>();
+builder.Services.AddScoped<IAdminUserService, AdminUserService>();
+
+
+// ==============================
+// JWT Authentication
+// ==============================
+
+var jwtKey = builder.Configuration["Jwt:Key"]
+    ?? throw new InvalidOperationException(
+        "JWT key is not configured.");
+
+var jwtIssuer = builder.Configuration["Jwt:Issuer"]
+    ?? throw new InvalidOperationException(
+        "JWT issuer is not configured.");
+
+var jwtAudience = builder.Configuration["Jwt:Audience"]
+    ?? throw new InvalidOperationException(
+        "JWT audience is not configured.");
+
+builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters =
+            new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+
+                ValidIssuer = jwtIssuer,
+                ValidAudience = jwtAudience,
+
+                IssuerSigningKey =
+                    new SymmetricSecurityKey(
+                        Encoding.UTF8.GetBytes(jwtKey)),
+
+                ClockSkew = TimeSpan.Zero
+            };
+    });
 
 // OpenAPI
 builder.Services.AddOpenApi();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.AddSecurityDefinition("Bearer",
+        new OpenApiSecurityScheme
+        {
+            Name = "Authorization",
+            Type = SecuritySchemeType.Http,
+            Scheme = "bearer",
+            BearerFormat = "JWT",
+            In = ParameterLocation.Header,
+            Description = "Enter your JWT token."
+        });
+
+    options.AddSecurityRequirement(document =>
+        new OpenApiSecurityRequirement
+        {
+            [new OpenApiSecuritySchemeReference("Bearer", document)] = []
+        });
+});
 
 // ==============================
 // Build Application
@@ -68,6 +141,9 @@ if (app.Environment.IsDevelopment())
 
 // Redirect HTTP to HTTPS
 app.UseHttpsRedirection();
+
+// Authentication
+app.UseAuthentication();
 
 // Authorization
 app.UseAuthorization();
