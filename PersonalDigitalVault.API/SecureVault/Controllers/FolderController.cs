@@ -115,6 +115,36 @@ namespace PersonalDigitalVault.API.SecureVault.Controllers
             {
                 return Conflict(ex.Message);
             }
+
+        }
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteFolder(int id)
+        {
+            try
+            {
+                var userIdClaim =
+                    User.FindFirstValue(ClaimTypes.NameIdentifier)
+                    ?? User.FindFirstValue("sub");
+
+                if (!int.TryParse(userIdClaim, out var userId))
+                {
+                    return Unauthorized("Invalid user identity.");
+                }
+
+                await _folderService.DeleteFolderAsync(
+                    id,
+                    userId);
+
+                return NoContent();
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Forbid();
+            }
         }
     }
 }

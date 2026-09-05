@@ -59,5 +59,13 @@ namespace PersonalDigitalVault.API.Repositories.Implementations
             _context.Folders.Update(folder);
             await _context.SaveChangesAsync();
         }
+        // Soft delete an existing folder
+        public async Task DeleteAsync(Folder folder)
+        {
+            folder.IsDeleted = true;
+            folder.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+        }
     }
 }

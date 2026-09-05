@@ -16,5 +16,6 @@ namespace PersonalDigitalVault.API.Repositories.Interfaces
         Task<List<Folder>> GetByUserIdAsync(int userId);
 
         Task UpdateAsync(Folder folder);
+        Task DeleteAsync(Folder folder);
     }
 }
