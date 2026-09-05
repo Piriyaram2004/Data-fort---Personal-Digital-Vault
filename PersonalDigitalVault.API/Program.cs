@@ -58,6 +58,9 @@ builder.Services.AddScoped<IAdminUserService, AdminUserService>();
 builder.Services.AddScoped<IAdminDashboardRepository, AdminDashboardRepository>();
 builder.Services.AddScoped<IAdminDashboardService, AdminDashboardService>();
 
+builder.Services.AddScoped<IAdminAuditLogRepository, AdminAuditLogRepository>();
+builder.Services.AddScoped<IAdminAuditLogService, AdminAuditLogService>();
+
 // ==============================
 // Public Sharing Module DI
 // ==============================
