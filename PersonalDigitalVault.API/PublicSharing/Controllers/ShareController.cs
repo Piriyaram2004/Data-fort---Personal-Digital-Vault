@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using PersonalDigitalVault.API.PublicSharing.DTOs;
 using PersonalDigitalVault.API.PublicSharing.Services.Interfaces;
 using PersonalDigitalVault.API.PublicSharing.Validators;
@@ -7,6 +9,7 @@ namespace PersonalDigitalVault.API.PublicSharing.Controllers
 {
     [ApiController]
     [Route("api/share-links")]
+    [Authorize]
     public class ShareController : ControllerBase
     {
         private readonly IShareService _shareService;
@@ -34,9 +37,15 @@ namespace PersonalDigitalVault.API.PublicSharing.Controllers
                 });
             }
 
-            // Temporary user ID for API testing.
-            // JWT integration will replace this later.
-            int userId = 1;
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (!int.TryParse(userIdClaim, out var userId))
+            {
+                return Unauthorized(new
+                {
+                    message = "Invalid user authentication."
+                });
+            }
 
             var result = await _shareService
                 .CreateShareLinkAsync(userId, request);
