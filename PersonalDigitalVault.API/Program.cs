@@ -10,6 +10,9 @@ using PersonalDigitalVault.API.Data;
 using PersonalDigitalVault.API.Models;
 using PersonalDigitalVault.API.Repositories.Implementations;
 using PersonalDigitalVault.API.Repositories.Interfaces;
+using PersonalDigitalVault.API.PublicSharing.Services.Implementations;
+using PersonalDigitalVault.API.PublicSharing.Services.Interfaces;
+using PersonalDigitalVault.API.PublicSharing.Validators;
 using PersonalDigitalVault.API.Administration.Services;
 using System.Text;
 
@@ -46,6 +49,18 @@ builder.Services.AddScoped<JwtTokenHelper>();
 
 builder.Services.AddScoped<IAdminUserRepository, AdminUserRepository>();
 builder.Services.AddScoped<IAdminUserService, AdminUserService>();
+
+// ==============================
+// Public Sharing Module DI
+// ==============================
+
+builder.Services.AddScoped<IShareLinkRepository, ShareLinkRepository>();
+builder.Services.AddScoped<IDocumentRepository, DocumentRepository>();
+
+builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IShareService, ShareService>();
+
+builder.Services.AddScoped<ShareLinkValidator>();
 
 
 // ==============================
