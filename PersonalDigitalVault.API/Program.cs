@@ -3,14 +3,18 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
+using PersonalDigitalVault.API.Administration.Services;
 using PersonalDigitalVault.API.Authentication.Helpers;
 using PersonalDigitalVault.API.Authentication.Services;
 using PersonalDigitalVault.API.Authentication.Validators;
 using PersonalDigitalVault.API.Data;
 using PersonalDigitalVault.API.Models;
+using PersonalDigitalVault.API.PublicSharing.Services.Implementations;
+using PersonalDigitalVault.API.PublicSharing.Services.Interfaces;
+using PersonalDigitalVault.API.PublicSharing.Validators;
 using PersonalDigitalVault.API.Repositories.Implementations;
 using PersonalDigitalVault.API.Repositories.Interfaces;
-using PersonalDigitalVault.API.Administration.Services;
+using PersonalDigitalVault.API.SecureVault.Services;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -38,7 +42,11 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddScoped<RegisterRequestValidator>();
 builder.Services.AddScoped<LoginRequestValidator>();
+builder.Services.AddScoped<ForgotPasswordRequestValidator>();
 builder.Services.AddScoped<JwtTokenHelper>();
+builder.Services.AddScoped<IPasswordResetTokenRepository, PasswordResetTokenRepository>();
+builder.Services.AddScoped<PasswordResetTokenHelper>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 // ==============================
 // Administration Module DI
@@ -46,6 +54,25 @@ builder.Services.AddScoped<JwtTokenHelper>();
 
 builder.Services.AddScoped<IAdminUserRepository, AdminUserRepository>();
 builder.Services.AddScoped<IAdminUserService, AdminUserService>();
+
+// ==============================
+// Public Sharing Module DI
+// ==============================
+
+builder.Services.AddScoped<IShareLinkRepository, ShareLinkRepository>();
+builder.Services.AddScoped<IDocumentRepository, DocumentRepository>();
+
+builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IShareService, ShareService>();
+
+builder.Services.AddScoped<ShareLinkValidator>();
+
+// ==============================
+// Secure Vault Module DI
+// ==============================
+
+builder.Services.AddScoped<IFolderRepository, FolderRepository>();
+builder.Services.AddScoped<IFolderService, FolderService>();
 
 
 // ==============================

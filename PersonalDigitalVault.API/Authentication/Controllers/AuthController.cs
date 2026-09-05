@@ -12,15 +12,18 @@ namespace PersonalDigitalVault.API.Authentication.Controllers
         private readonly IAuthService _authService;
         private readonly RegisterRequestValidator _registerValidator;
         private readonly LoginRequestValidator _loginValidator;
+        private readonly ForgotPasswordRequestValidator _forgotPasswordValidator;
 
         public AuthController(
             IAuthService authService,
             RegisterRequestValidator registerValidator,
-            LoginRequestValidator loginValidator)
+            LoginRequestValidator loginValidator,
+            ForgotPasswordRequestValidator forgotPasswordValidator)
         {
             _authService = authService;
             _registerValidator = registerValidator;
             _loginValidator = loginValidator;
+            _forgotPasswordValidator = forgotPasswordValidator;
         }
 
         [HttpPost("register")]
@@ -93,6 +96,39 @@ namespace PersonalDigitalVault.API.Authentication.Controllers
                 return StatusCode(500, new
                 {
                     message = "Login could not be completed."
+                });
+            }
+        }
+
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword(
+        ForgotPasswordRequestDto request)
+        {
+            var errors = _forgotPasswordValidator.Validate(request);
+
+            if (errors.Count > 0)
+            {
+                return BadRequest(new
+                {
+                    message = "Validation failed.",
+                    errors
+                });
+            }
+
+            try
+            {
+                await _authService.ForgotPasswordAsync(request);
+
+                return Ok(new
+                {
+                    message = "If the email is registered, a password reset link will be sent."
+                });
+            }
+            catch (InvalidOperationException)
+            {
+                return StatusCode(500, new
+                {
+                    message = "Password reset request could not be completed."
                 });
             }
         }
