@@ -37,10 +37,9 @@ namespace PersonalDigitalVault.API.SecureVault.Controllers
                     request,
                     userId);
 
-                return CreatedAtAction(
-                    nameof(GetFolder),
-                    new { id = folder!.FolderId },
-                    folder);
+                return StatusCode(
+     StatusCodes.Status201Created,
+     folder);
             }
             catch (ArgumentException ex)
             {
@@ -60,10 +59,22 @@ namespace PersonalDigitalVault.API.SecureVault.Controllers
             }
         }
 
-        [HttpGet("{id}")]
-        public IActionResult GetFolder(int id)
+        
+        [HttpGet]
+        public async Task<IActionResult> GetFolders()
         {
-            return Ok();
+            var userIdClaim =
+                User.FindFirstValue(ClaimTypes.NameIdentifier)
+                ?? User.FindFirstValue("sub");
+
+            if (!int.TryParse(userIdClaim, out var userId))
+            {
+                return Unauthorized("Invalid user identity.");
+            }
+
+            var folders = await _folderService.GetFoldersAsync(userId);
+
+            return Ok(folders);
         }
     }
 }
