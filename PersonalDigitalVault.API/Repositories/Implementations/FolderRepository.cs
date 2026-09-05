@@ -53,5 +53,11 @@ namespace PersonalDigitalVault.API.Repositories.Implementations
                 .Where(f => f.UserId == userId && !f.IsDeleted)
                 .ToListAsync();
         }
+        // Update an existing folder
+        public async Task UpdateAsync(Folder folder)
+        {
+            _context.Folders.Update(folder);
+            await _context.SaveChangesAsync();
+        }
     }
 }

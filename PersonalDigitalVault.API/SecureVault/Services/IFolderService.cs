@@ -11,6 +11,10 @@ namespace PersonalDigitalVault.API.SecureVault.Services
       int userId);
 
         Task<List<Folder>> GetFoldersAsync(int userId);
+        Task<Folder?> UpdateFolderAsync(
+    int folderId,
+    UpdateFolderRequest request,
+    int userId);
     }
 
 }
