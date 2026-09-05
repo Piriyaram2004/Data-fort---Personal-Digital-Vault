@@ -81,10 +81,21 @@ namespace PersonalDigitalVault.API.SecureVault.Services
             // 8. Return the newly created folder
             return folder;
         }
-        public async Task<List<Folder>> GetFoldersAsync(int userId)
-
+        public async Task<List<FolderResponse>> GetFoldersAsync(int userId)
         {
-            return await _folderRepository.GetByUserIdAsync(userId);
+            var folders = await _folderRepository.GetByUserIdAsync(userId);
+
+            return folders.Select(folder => new FolderResponse
+            {
+                FolderId = folder.FolderId,
+                UserId = folder.UserId,
+                ParentFolderId = folder.ParentFolderId,
+                FolderName = folder.FolderName,
+                Description = folder.Description,
+                IsDeleted = folder.IsDeleted,
+                CreatedAt = folder.CreatedAt,
+                UpdatedAt = folder.UpdatedAt
+            }).ToList();
         }
         public async Task<Folder?> UpdateFolderAsync(
     int folderId,
@@ -147,5 +158,31 @@ namespace PersonalDigitalVault.API.SecureVault.Services
             return folder;
         }
 
+
+        public async Task<bool> DeleteFolderAsync(
+    int folderId,
+    int userId)
+        {
+            // 1. Find the active folder
+            var folder = await _folderRepository.GetByIdAsync(folderId);
+
+            if (folder == null)
+            {
+                throw new KeyNotFoundException(
+                    "Folder not found.");
+            }
+
+            // 2. Check folder ownership
+            if (folder.UserId != userId)
+            {
+                throw new UnauthorizedAccessException(
+                    "You do not have access to this folder.");
+            }
+
+            // 3. Soft delete the folder
+            await _folderRepository.DeleteAsync(folder);
+
+            return true;
+        }
     }
 }
