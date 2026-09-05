@@ -13,14 +13,20 @@ namespace PersonalDigitalVault.API.Repositories.Implementations
         {
             _context = context;
         }
+
         // Add New Folder
         public async Task AddAsync(Folder folder)
         {
             await _context.Folders.AddAsync(folder);
-            
+            await _context.SaveChangesAsync();
         }
-        //Checking Folder Exist Using Id , ParentFolderId , NormalizedFolderName Findout Duplicates
-        public  async Task<bool> ExistsByNameAsync(int userId, int? parentFolderId, string normalizedFolderName)
+
+        // Check whether an active folder already exists
+        // using UserId, ParentFolderId and NormalizedFolderName
+        public async Task<bool> ExistsByNameAsync(
+            int userId,
+            int? parentFolderId,
+            string normalizedFolderName)
         {
             return await _context.Folders.AnyAsync(f =>
                 f.UserId == userId &&
@@ -28,11 +34,13 @@ namespace PersonalDigitalVault.API.Repositories.Implementations
                 f.NormalizedFolderName == normalizedFolderName &&
                 !f.IsDeleted);
         }
-        // Get or Find the Folder ...
-        public  async Task<Folder?> GetByIdAsync(int folderId) 
+
+        // Get an active folder by ID
+        public async Task<Folder?> GetByIdAsync(int folderId)
         {
-            return await _context.Folders.FirstOrDefaultAsync(f => f.FolderId == folderId &&
-             !f.IsDeleted); // Soft delete condition to exclude deleted folders . 
+            return await _context.Folders.FirstOrDefaultAsync(f =>
+                f.FolderId == folderId &&
+                !f.IsDeleted);
         }
     }
 }
