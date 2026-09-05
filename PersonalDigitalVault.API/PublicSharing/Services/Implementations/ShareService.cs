@@ -59,5 +59,21 @@ namespace PersonalDigitalVault.API.PublicSharing.Services.Implementations
                 CreatedAt = shareLink.CreatedAt
             };
         }
+
+        public async Task<List<ShareLinkDto>> GetShareLinksAsync(int userId)
+        {
+            var shareLinks = await _shareLinkRepository
+                .GetByUserIdAsync(userId);
+
+            return shareLinks.Select(shareLink => new ShareLinkDto
+            {
+                ShareLinkId = shareLink.ShareLinkId,
+                DocumentId = shareLink.DocumentId,
+                ShareToken = shareLink.ShareToken,
+                ExpiresAt = shareLink.ExpiresAt,
+                IsRevoked = shareLink.IsRevoked,
+                CreatedAt = shareLink.CreatedAt
+            }).ToList();
+        }
     }
 }

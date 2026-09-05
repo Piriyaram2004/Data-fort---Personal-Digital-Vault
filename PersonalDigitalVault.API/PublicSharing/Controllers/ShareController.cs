@@ -62,5 +62,24 @@ namespace PersonalDigitalVault.API.PublicSharing.Controllers
                 StatusCodes.Status201Created,
                 result);
         }
+        [HttpGet]
+        public async Task<IActionResult> GetShareLinks()
+        {
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (!int.TryParse(userIdClaim, out var userId))
+            {
+                return Unauthorized(new
+                {
+                    message = "Invalid user authentication."
+                });
+            }
+
+            var result = await _shareService
+                .GetShareLinksAsync(userId);
+
+            return Ok(result);
+        }
+
     }
 }

@@ -7,5 +7,7 @@ namespace PersonalDigitalVault.API.PublicSharing.Services.Interfaces
         Task<ShareLinkDto?> CreateShareLinkAsync(
             int userId,
             CreateShareLinkDto request);
+
+        Task<List<ShareLinkDto>> GetShareLinksAsync(int userId);
     }
 }

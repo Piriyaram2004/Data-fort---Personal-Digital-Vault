@@ -1,4 +1,5 @@
-﻿using PersonalDigitalVault.API.Data;
+﻿using Microsoft.EntityFrameworkCore;
+using PersonalDigitalVault.API.Data;
 using PersonalDigitalVault.API.Models;
 using PersonalDigitalVault.API.Repositories.Interfaces;
 
@@ -17,6 +18,13 @@ namespace PersonalDigitalVault.API.Repositories.Implementations
         {
             await _context.ShareLinks.AddAsync(shareLink);
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<List<ShareLink>> GetByUserIdAsync(int userId)
+        {
+            return await _context.ShareLinks
+                .Where(s => s.UserId == userId)
+                .ToListAsync();
         }
     }
 }
