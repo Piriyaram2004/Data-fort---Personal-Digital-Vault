@@ -15,5 +15,6 @@ namespace PersonalDigitalVault.API.Repositories.Interfaces
 
         Task AddAsync(Document document);
         Task UpdateAsync(Document document);
+        Task DeleteAsync(Document document);
     }
 }

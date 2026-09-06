@@ -210,5 +210,28 @@ namespace PersonalDigitalVault.API.SecureVault.Services
                 UpdatedAt = document.UpdatedAt
             };
         }
+        public async Task<bool> DeleteDocumentAsync(
+    int documentId,
+    int userId)
+        {
+            var document =
+                await _documentRepository.GetByIdAsync(documentId);
+
+            if (document == null)
+            {
+                throw new KeyNotFoundException(
+                    "Document not found.");
+            }
+
+            if (document.UserId != userId)
+            {
+                throw new UnauthorizedAccessException(
+                    "You do not have access to this document.");
+            }
+
+            await _documentRepository.DeleteAsync(document);
+
+            return true;
+        }
     }
 }

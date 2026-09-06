@@ -53,5 +53,12 @@ namespace PersonalDigitalVault.API.Repositories.Implementations
             _context.Documents.Update(document);
             await _context.SaveChangesAsync();
         }
+        public async Task DeleteAsync(Document document)
+        {
+            document.IsDeleted = true;
+            document.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+        }
     }
 }
