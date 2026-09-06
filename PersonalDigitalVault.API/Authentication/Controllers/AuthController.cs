@@ -2,6 +2,8 @@
 using PersonalDigitalVault.API.Authentication.DTOs;
 using PersonalDigitalVault.API.Authentication.Services;
 using PersonalDigitalVault.API.Authentication.Validators;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace PersonalDigitalVault.API.Authentication.Controllers
 {
@@ -14,19 +16,22 @@ namespace PersonalDigitalVault.API.Authentication.Controllers
         private readonly LoginRequestValidator _loginValidator;
         private readonly ForgotPasswordRequestValidator _forgotPasswordValidator;
         private readonly ResetPasswordRequestValidator _resetPasswordValidator;
+        private readonly ChangePasswordRequestValidator _changePasswordValidator;
 
         public AuthController(
             IAuthService authService,
             RegisterRequestValidator registerValidator,
             LoginRequestValidator loginValidator,
             ForgotPasswordRequestValidator forgotPasswordValidator,
-            ResetPasswordRequestValidator resetPasswordValidator)
+            ResetPasswordRequestValidator resetPasswordValidator,
+            ChangePasswordRequestValidator changePasswordValidator)
         {
             _authService = authService;
             _registerValidator = registerValidator;
             _loginValidator = loginValidator;
             _forgotPasswordValidator = forgotPasswordValidator;
             _resetPasswordValidator = resetPasswordValidator;
+            _changePasswordValidator = changePasswordValidator;
         }
 
         [HttpPost("register")]
@@ -105,7 +110,7 @@ namespace PersonalDigitalVault.API.Authentication.Controllers
 
         [HttpPost("forgot-password")]
         public async Task<IActionResult> ForgotPassword(
-        ForgotPasswordRequestDto request)
+            ForgotPasswordRequestDto request)
         {
             var errors = _forgotPasswordValidator.Validate(request);
 
@@ -138,7 +143,7 @@ namespace PersonalDigitalVault.API.Authentication.Controllers
 
         [HttpPost("reset-password")]
         public async Task<IActionResult> ResetPassword(
-        ResetPasswordRequestDto request)
+            ResetPasswordRequestDto request)
         {
             var errors = _resetPasswordValidator.Validate(request);
 
@@ -165,6 +170,60 @@ namespace PersonalDigitalVault.API.Authentication.Controllers
                 return BadRequest(new
                 {
                     message = "Invalid or expired password reset request."
+                });
+            }
+        }
+
+        [Authorize]
+        [HttpPost("change-password")]
+        public async Task<IActionResult> ChangePassword(
+            ChangePasswordRequestDto request)
+        {
+            var errors = _changePasswordValidator.Validate(request);
+
+            if (errors.Count > 0)
+            {
+                return BadRequest(new
+                {
+                    message = "Validation failed.",
+                    errors
+                });
+            }
+
+            var userIdClaim = User.FindFirstValue(
+                ClaimTypes.NameIdentifier);
+
+            if (!int.TryParse(userIdClaim, out var userId))
+            {
+                return Unauthorized(new
+                {
+                    message = "Invalid authentication token."
+                });
+            }
+
+            try
+            {
+                await _authService.ChangePasswordAsync(
+                    userId,
+                    request);
+
+                return Ok(new
+                {
+                    message = "Password changed successfully."
+                });
+            }
+            catch (InvalidOperationException)
+            {
+                return BadRequest(new
+                {
+                    message = "Current password is incorrect."
+                });
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Unauthorized(new
+                {
+                    message = "User account is not available."
                 });
             }
         }

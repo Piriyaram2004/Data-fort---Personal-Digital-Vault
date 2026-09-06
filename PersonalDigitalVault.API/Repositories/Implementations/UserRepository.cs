@@ -33,6 +33,13 @@ namespace PersonalDigitalVault.API.Repositories.Implementations
                 .FirstOrDefaultAsync(u => u.Email.ToLower() == email.ToLower());
         }
 
+        public async Task<User?> GetByIdAsync(int userId)
+        {
+            return await _context.Users
+                .Include(u => u.Role)
+                .FirstOrDefaultAsync(u => u.UserId == userId);
+        }
+
         public async Task AddAsync(User user)
         {
             await _context.Users.AddAsync(user);

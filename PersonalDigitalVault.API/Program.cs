@@ -48,6 +48,7 @@ builder.Services.AddScoped<IPasswordResetTokenRepository, PasswordResetTokenRepo
 builder.Services.AddScoped<PasswordResetTokenHelper>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<ResetPasswordRequestValidator>();
+builder.Services.AddScoped<ChangePasswordRequestValidator>();
 
 // ==============================
 // Administration Module DI

@@ -204,5 +204,42 @@ namespace PersonalDigitalVault.API.Authentication.Services
 
             await _userRepository.SaveChangesAsync();
         }
+
+        public async Task ChangePasswordAsync(
+        int userId,
+        ChangePasswordRequestDto request)
+        {
+            var user = await _userRepository.GetByIdAsync(userId);
+
+            if (user == null || !user.IsActive)
+            {
+                throw new UnauthorizedAccessException(
+                    "User account is not available.");
+            }
+
+            var currentPasswordResult =
+                _passwordHasher.VerifyHashedPassword(
+                    user,
+                    user.PasswordHash,
+                    request.CurrentPassword);
+
+            if (currentPasswordResult == PasswordVerificationResult.Failed)
+            {
+                throw new InvalidOperationException(
+                    "Current password is incorrect.");
+            }
+
+            user.PasswordHash =
+                _passwordHasher.HashPassword(
+                    user,
+                    request.NewPassword);
+
+            var now = DateTime.UtcNow;
+
+            user.LastPasswordChangedAt = now;
+            user.UpdatedAt = now;
+
+            await _userRepository.SaveChangesAsync();
+        }
     }
 }
