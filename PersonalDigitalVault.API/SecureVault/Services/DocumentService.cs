@@ -8,14 +8,27 @@ namespace PersonalDigitalVault.API.SecureVault.Services
     {
         private readonly IDocumentRepository _documentRepository;
         private readonly IFolderRepository _folderRepository;
+        private readonly IFileStorageService _fileStorageService;
+        private readonly IEncryptionService _encryptionService;
+        private readonly IHashService _hashService;
 
         public DocumentService(
             IDocumentRepository documentRepository,
-            IFolderRepository folderRepository)
+            IFolderRepository folderRepository,
+            IFileStorageService fileStorageService,
+            IEncryptionService encryptionService,
+            IHashService hashService)
         {
             _documentRepository = documentRepository;
             _folderRepository = folderRepository;
+            _fileStorageService = fileStorageService;
+            _encryptionService = encryptionService;
+            _hashService = hashService;
         }
+
+        // ==========================================
+        // GET DOCUMENTS
+        // ==========================================
 
         public async Task<List<DocumentResponse>> GetDocumentsAsync(
             int userId)
@@ -38,6 +51,10 @@ namespace PersonalDigitalVault.API.SecureVault.Services
             }).ToList();
         }
 
+        // ==========================================
+        // CREATE DOCUMENT
+        // ==========================================
+
         public async Task<DocumentResponse> CreateDocumentAsync(
             CreateDocumentRequest request,
             int userId)
@@ -59,8 +76,9 @@ namespace PersonalDigitalVault.API.SecureVault.Services
 
             if (request.FolderId.HasValue)
             {
-                var folder = await _folderRepository.GetByIdAsync(
-                    request.FolderId.Value);
+                var folder =
+                    await _folderRepository.GetByIdAsync(
+                        request.FolderId.Value);
 
                 if (folder == null)
                 {
@@ -125,16 +143,23 @@ namespace PersonalDigitalVault.API.SecureVault.Services
                 UpdatedAt = document.UpdatedAt
             };
         }
+
+        // ==========================================
+        // UPDATE DOCUMENT
+        // ==========================================
+
         public async Task<DocumentResponse?> UpdateDocumentAsync(
-    int documentId,
-    UpdateDocumentRequest request,
-    int userId)
+            int documentId,
+            UpdateDocumentRequest request,
+            int userId)
         {
-            var document = await _documentRepository.GetByIdAsync(documentId);
+            var document =
+                await _documentRepository.GetByIdAsync(documentId);
 
             if (document == null)
             {
-                throw new KeyNotFoundException("Document not found.");
+                throw new KeyNotFoundException(
+                    "Document not found.");
             }
 
             if (document.UserId != userId)
@@ -154,8 +179,9 @@ namespace PersonalDigitalVault.API.SecureVault.Services
 
             if (request.FolderId.HasValue)
             {
-                var folder = await _folderRepository.GetByIdAsync(
-                    request.FolderId.Value);
+                var folder =
+                    await _folderRepository.GetByIdAsync(
+                        request.FolderId.Value);
 
                 if (folder == null)
                 {
@@ -189,10 +215,17 @@ namespace PersonalDigitalVault.API.SecureVault.Services
                 }
             }
 
-            document.OriginalFileName = originalFileName;
-            document.NormalizedFileName = normalizedFileName;
-            document.FolderId = request.FolderId;
-            document.UpdatedAt = DateTime.UtcNow;
+            document.OriginalFileName =
+                originalFileName;
+
+            document.NormalizedFileName =
+                normalizedFileName;
+
+            document.FolderId =
+                request.FolderId;
+
+            document.UpdatedAt =
+                DateTime.UtcNow;
 
             await _documentRepository.UpdateAsync(document);
 
@@ -210,9 +243,14 @@ namespace PersonalDigitalVault.API.SecureVault.Services
                 UpdatedAt = document.UpdatedAt
             };
         }
+
+        // ==========================================
+        // DELETE DOCUMENT
+        // ==========================================
+
         public async Task<bool> DeleteDocumentAsync(
-    int documentId,
-    int userId)
+            int documentId,
+            int userId)
         {
             var document =
                 await _documentRepository.GetByIdAsync(documentId);
@@ -233,30 +271,19 @@ namespace PersonalDigitalVault.API.SecureVault.Services
 
             return true;
         }
-        private readonly IFileStorageService _fileStorageService;
-        private readonly IEncryptionService _encryptionService;
-        private readonly IHashService _hashService;
 
-        public DocumentService(
-        IDocumentRepository documentRepository,
-        IFolderRepository folderRepository,
-        IFileStorageService fileStorageService,
-        IEncryptionService encryptionService,
-        IHashService hashService)
-        {
-            _documentRepository = documentRepository;
-            _folderRepository = folderRepository;
-            _fileStorageService = fileStorageService;
-            _encryptionService = encryptionService;
-            _hashService = hashService;
-        }
+        // ==========================================
+        // UPLOAD DOCUMENT
+        // ==========================================
+
         public async Task<DocumentResponse> UploadDocumentAsync(
-    DocumentUploadRequest request,
-    int userId)
+            DocumentUploadRequest request,
+            int userId)
         {
             if (request.File == null || request.File.Length == 0)
             {
-                throw new ArgumentException("A file is required.");
+                throw new ArgumentException(
+                    "A file is required.");
             }
 
             const long maxFileSize = 10 * 1024 * 1024;
@@ -268,7 +295,8 @@ namespace PersonalDigitalVault.API.SecureVault.Services
             }
 
             var originalFileName =
-                Path.GetFileName(request.File.FileName).Trim();
+                Path.GetFileName(
+                    request.File.FileName).Trim();
 
             if (string.IsNullOrWhiteSpace(originalFileName))
             {
@@ -277,18 +305,19 @@ namespace PersonalDigitalVault.API.SecureVault.Services
             }
 
             var extension =
-                Path.GetExtension(originalFileName).ToLowerInvariant();
+                Path.GetExtension(
+                    originalFileName).ToLowerInvariant();
 
             var allowedExtensions = new[]
             {
-        ".pdf",
-        ".doc",
-        ".docx",
-        ".txt",
-        ".jpg",
-        ".jpeg",
-        ".png"
-    };
+                ".pdf",
+                ".doc",
+                ".docx",
+                ".txt",
+                ".jpg",
+                ".jpeg",
+                ".png"
+            };
 
             if (!allowedExtensions.Contains(extension))
             {
@@ -298,8 +327,9 @@ namespace PersonalDigitalVault.API.SecureVault.Services
 
             if (request.FolderId.HasValue)
             {
-                var folder = await _folderRepository.GetByIdAsync(
-                    request.FolderId.Value);
+                var folder =
+                    await _folderRepository.GetByIdAsync(
+                        request.FolderId.Value);
 
                 if (folder == null)
                 {
@@ -333,7 +363,8 @@ namespace PersonalDigitalVault.API.SecureVault.Services
                 request.File.OpenReadStream();
 
             var originalHash =
-                await _hashService.ComputeSHA256Async(inputStream);
+                await _hashService.ComputeSHA256Async(
+                    inputStream);
 
             inputStream.Position = 0;
 
@@ -399,19 +430,29 @@ namespace PersonalDigitalVault.API.SecureVault.Services
             {
                 if (!string.IsNullOrWhiteSpace(filePath))
                 {
-                    await _fileStorageService.DeleteFileAsync(filePath);
+                    await _fileStorageService.DeleteFileAsync(
+                        filePath);
                 }
 
                 throw;
             }
         }
-        public async Task<(byte[] FileBytes, string FileName, string ContentType)>
-    DownloadDocumentAsync(
-        int documentId,
-        int userId)
+
+        // ==========================================
+        // DOWNLOAD DOCUMENT
+        // ==========================================
+
+        public async Task<(
+            byte[] FileBytes,
+            string FileName,
+            string ContentType)>
+            DownloadDocumentAsync(
+                int documentId,
+                int userId)
         {
             var document =
-                await _documentRepository.GetByIdAsync(documentId);
+                await _documentRepository.GetByIdAsync(
+                    documentId);
 
             if (document == null)
             {
@@ -425,7 +466,8 @@ namespace PersonalDigitalVault.API.SecureVault.Services
                     "You do not have access to this document.");
             }
 
-            if (string.IsNullOrWhiteSpace(document.FilePath))
+            if (string.IsNullOrWhiteSpace(
+                document.FilePath))
             {
                 throw new InvalidOperationException(
                     "Document file is not available.");
@@ -450,7 +492,58 @@ namespace PersonalDigitalVault.API.SecureVault.Services
                 document.OriginalFileName,
                 contentType);
         }
+
+        // ==========================================
+        // VERIFY DOCUMENT INTEGRITY
+        // ==========================================
+
+        public async Task<bool> VerifyDocumentIntegrityAsync(
+            int documentId,
+            int userId)
+        {
+            var document =
+                await _documentRepository.GetByIdAsync(
+                    documentId);
+
+            if (document == null)
+            {
+                throw new KeyNotFoundException(
+                    "Document not found.");
+            }
+
+            if (document.UserId != userId)
+            {
+                throw new UnauthorizedAccessException(
+                    "You do not have access to this document.");
+            }
+
+            if (string.IsNullOrWhiteSpace(
+                document.FilePath))
+            {
+                throw new InvalidOperationException(
+                    "Document file is not available.");
+            }
+
+            var encryptionKey =
+                _encryptionService.GetKey();
+
+            var fileBytes =
+                await _fileStorageService.ReadDecryptedFileAsync(
+                    document.FilePath,
+                    encryptionKey,
+                    document.EncryptionIV);
+
+            using var memoryStream =
+                new MemoryStream(fileBytes);
+
+            var currentHash =
+                await _hashService.ComputeSHA256Async(
+                    memoryStream);
+
+            return string.Equals(
+                currentHash,
+                document.SHA256Hash,
+                StringComparison.OrdinalIgnoreCase);
+        }
     }
-
-
 }

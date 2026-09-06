@@ -230,5 +230,43 @@ namespace PersonalDigitalVault.API.SecureVault.Controllers
                 return NotFound("Document file was not found.");
             }
         }
+        [HttpPost("{id}/verify-integrity")]
+        public async Task<IActionResult> VerifyDocumentIntegrity(int id)
+        {
+            try
+            {
+                var userIdClaim =
+                    User.FindFirstValue(ClaimTypes.NameIdentifier)
+                    ?? User.FindFirstValue("sub");
+
+                if (!int.TryParse(userIdClaim, out var userId))
+                {
+                    return Unauthorized("Invalid user identity.");
+                }
+
+                var isValid =
+                    await _documentService.VerifyDocumentIntegrityAsync(
+                        id,
+                        userId);
+
+                return Ok(new
+                {
+                    documentId = id,
+                    isIntegrityValid = isValid
+                });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Forbid();
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
     }
 }

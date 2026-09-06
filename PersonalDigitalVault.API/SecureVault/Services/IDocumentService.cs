@@ -27,5 +27,9 @@ namespace PersonalDigitalVault.API.SecureVault.Services
     DownloadDocumentAsync(
         int documentId,
         int userId);
+
+        Task<bool> VerifyDocumentIntegrityAsync(
+    int documentId,
+    int userId);
     }
 }
