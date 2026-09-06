@@ -147,5 +147,47 @@ namespace PersonalDigitalVault.API.SecureVault.Controllers
                 return Forbid();
             }
         }
+        [HttpPost("upload")]
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> UploadDocument(
+    [FromForm] DocumentUploadRequest request)
+        {
+            try
+            {
+                var userIdClaim =
+                    User.FindFirstValue(ClaimTypes.NameIdentifier)
+                    ?? User.FindFirstValue("sub");
+
+                if (!int.TryParse(userIdClaim, out var userId))
+                {
+                    return Unauthorized("Invalid user identity.");
+                }
+
+                var document =
+                    await _documentService.UploadDocumentAsync(
+                        request,
+                        userId);
+
+                return StatusCode(
+                    StatusCodes.Status201Created,
+                    document);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Forbid();
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(ex.Message);
+            }
+        }
     }
 }

@@ -18,5 +18,9 @@ namespace PersonalDigitalVault.API.SecureVault.Services
         Task<bool> DeleteDocumentAsync(
     int documentId,
     int userId);
+
+        Task<DocumentResponse> UploadDocumentAsync(
+    DocumentUploadRequest request,
+    int userId);
     }
 }
