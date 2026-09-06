@@ -47,6 +47,7 @@ builder.Services.AddScoped<JwtTokenHelper>();
 builder.Services.AddScoped<IPasswordResetTokenRepository, PasswordResetTokenRepository>();
 builder.Services.AddScoped<PasswordResetTokenHelper>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<ResetPasswordRequestValidator>();
 
 // ==============================
 // Administration Module DI

@@ -123,7 +123,7 @@ namespace PersonalDigitalVault.API.Authentication.Services
         }
 
         public async Task ForgotPasswordAsync(
-        ForgotPasswordRequestDto request)
+            ForgotPasswordRequestDto request)
         {
             var user = await _userRepository
                 .GetByEmailAsync(request.Email.Trim());
@@ -160,6 +160,49 @@ namespace PersonalDigitalVault.API.Authentication.Services
 
             // Raw token is used only in the reset link.
             // Do not store, return, or log the raw token.
+        }
+
+        public async Task ResetPasswordAsync(
+            ResetPasswordRequestDto request)
+        {
+            var user = await _userRepository
+                .GetByEmailAsync(request.Email.Trim());
+
+            if (user == null || !user.IsActive)
+            {
+                throw new InvalidOperationException(
+                    "Invalid or expired password reset request.");
+            }
+
+            var tokenHash =
+                _passwordResetTokenHelper.HashToken(
+                    request.Token);
+
+            var resetToken =
+                await _passwordResetTokenRepository
+                    .GetValidTokenAsync(
+                        tokenHash,
+                        DateTime.UtcNow);
+
+            if (resetToken == null ||
+                resetToken.UserId != user.UserId)
+            {
+                throw new InvalidOperationException(
+                    "Invalid or expired password reset request.");
+            }
+
+            user.PasswordHash =
+                _passwordHasher.HashPassword(
+                    user,
+                    request.NewPassword);
+
+            user.LastPasswordChangedAt = DateTime.UtcNow;
+            user.UpdatedAt = DateTime.UtcNow;
+
+            resetToken.IsUsed = true;
+            resetToken.UsedAt = DateTime.UtcNow;
+
+            await _userRepository.SaveChangesAsync();
         }
     }
 }

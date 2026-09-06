@@ -11,5 +11,6 @@ namespace PersonalDigitalVault.API.Repositories.Interfaces
         Task<User?> GetByEmailAsync(string email);
 
         Task AddAsync(User user);
+        Task SaveChangesAsync();
     }
 }

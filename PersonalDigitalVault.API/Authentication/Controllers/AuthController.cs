@@ -13,17 +13,20 @@ namespace PersonalDigitalVault.API.Authentication.Controllers
         private readonly RegisterRequestValidator _registerValidator;
         private readonly LoginRequestValidator _loginValidator;
         private readonly ForgotPasswordRequestValidator _forgotPasswordValidator;
+        private readonly ResetPasswordRequestValidator _resetPasswordValidator;
 
         public AuthController(
             IAuthService authService,
             RegisterRequestValidator registerValidator,
             LoginRequestValidator loginValidator,
-            ForgotPasswordRequestValidator forgotPasswordValidator)
+            ForgotPasswordRequestValidator forgotPasswordValidator,
+            ResetPasswordRequestValidator resetPasswordValidator)
         {
             _authService = authService;
             _registerValidator = registerValidator;
             _loginValidator = loginValidator;
             _forgotPasswordValidator = forgotPasswordValidator;
+            _resetPasswordValidator = resetPasswordValidator;
         }
 
         [HttpPost("register")]
@@ -129,6 +132,39 @@ namespace PersonalDigitalVault.API.Authentication.Controllers
                 return StatusCode(500, new
                 {
                     message = "Password reset request could not be completed."
+                });
+            }
+        }
+
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword(
+        ResetPasswordRequestDto request)
+        {
+            var errors = _resetPasswordValidator.Validate(request);
+
+            if (errors.Count > 0)
+            {
+                return BadRequest(new
+                {
+                    message = "Validation failed.",
+                    errors
+                });
+            }
+
+            try
+            {
+                await _authService.ResetPasswordAsync(request);
+
+                return Ok(new
+                {
+                    message = "Password has been reset successfully."
+                });
+            }
+            catch (InvalidOperationException)
+            {
+                return BadRequest(new
+                {
+                    message = "Invalid or expired password reset request."
                 });
             }
         }
