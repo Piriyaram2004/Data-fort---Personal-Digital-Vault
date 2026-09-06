@@ -14,5 +14,6 @@ namespace PersonalDigitalVault.API.Repositories.Interfaces
             string normalizedFileName);
 
         Task AddAsync(Document document);
+        Task UpdateAsync(Document document);
     }
 }

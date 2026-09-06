@@ -48,5 +48,10 @@ namespace PersonalDigitalVault.API.Repositories.Implementations
             await _context.Documents.AddAsync(document);
             await _context.SaveChangesAsync();
         }
+        public async Task UpdateAsync(Document document)
+        {
+            _context.Documents.Update(document);
+            await _context.SaveChangesAsync();
+        }
     }
 }

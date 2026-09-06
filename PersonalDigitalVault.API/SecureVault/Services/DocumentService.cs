@@ -125,5 +125,90 @@ namespace PersonalDigitalVault.API.SecureVault.Services
                 UpdatedAt = document.UpdatedAt
             };
         }
+        public async Task<DocumentResponse?> UpdateDocumentAsync(
+    int documentId,
+    UpdateDocumentRequest request,
+    int userId)
+        {
+            var document = await _documentRepository.GetByIdAsync(documentId);
+
+            if (document == null)
+            {
+                throw new KeyNotFoundException("Document not found.");
+            }
+
+            if (document.UserId != userId)
+            {
+                throw new UnauthorizedAccessException(
+                    "You do not have access to this document.");
+            }
+
+            var originalFileName =
+                request.OriginalFileName.Trim();
+
+            if (string.IsNullOrWhiteSpace(originalFileName))
+            {
+                throw new ArgumentException(
+                    "File name is required.");
+            }
+
+            if (request.FolderId.HasValue)
+            {
+                var folder = await _folderRepository.GetByIdAsync(
+                    request.FolderId.Value);
+
+                if (folder == null)
+                {
+                    throw new KeyNotFoundException(
+                        "Folder not found.");
+                }
+
+                if (folder.UserId != userId)
+                {
+                    throw new UnauthorizedAccessException(
+                        "You do not have access to this folder.");
+                }
+            }
+
+            var normalizedFileName =
+                originalFileName.ToLowerInvariant();
+
+            if (document.NormalizedFileName != normalizedFileName ||
+                document.FolderId != request.FolderId)
+            {
+                var documentExists =
+                    await _documentRepository.ExistsByNameAsync(
+                        userId,
+                        request.FolderId,
+                        normalizedFileName);
+
+                if (documentExists)
+                {
+                    throw new InvalidOperationException(
+                        "A document with this name already exists.");
+                }
+            }
+
+            document.OriginalFileName = originalFileName;
+            document.NormalizedFileName = normalizedFileName;
+            document.FolderId = request.FolderId;
+            document.UpdatedAt = DateTime.UtcNow;
+
+            await _documentRepository.UpdateAsync(document);
+
+            return new DocumentResponse
+            {
+                DocumentId = document.DocumentId,
+                UserId = document.UserId,
+                FolderId = document.FolderId,
+                OriginalFileName = document.OriginalFileName,
+                FileType = document.FileType,
+                FileSize = document.FileSize,
+                SHA256Hash = document.SHA256Hash,
+                IsEncrypted = document.IsEncrypted,
+                CreatedAt = document.CreatedAt,
+                UpdatedAt = document.UpdatedAt
+            };
+        }
     }
 }

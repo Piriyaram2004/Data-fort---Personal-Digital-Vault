@@ -77,5 +77,46 @@ namespace PersonalDigitalVault.API.SecureVault.Controllers
                 return Conflict(ex.Message);
             }
         }
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateDocument(
+    int id,
+    UpdateDocumentRequest request)
+        {
+            try
+            {
+                var userIdClaim =
+                    User.FindFirstValue(ClaimTypes.NameIdentifier)
+                    ?? User.FindFirstValue("sub");
+
+                if (!int.TryParse(userIdClaim, out var userId))
+                {
+                    return Unauthorized("Invalid user identity.");
+                }
+
+                var document =
+                    await _documentService.UpdateDocumentAsync(
+                        id,
+                        request,
+                        userId);
+
+                return Ok(document);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Forbid();
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(ex.Message);
+            }
+        }
     }
 }

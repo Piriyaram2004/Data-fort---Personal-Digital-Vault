@@ -9,5 +9,10 @@ namespace PersonalDigitalVault.API.SecureVault.Services
         Task<DocumentResponse> CreateDocumentAsync(
             CreateDocumentRequest request,
             int userId);
+
+        Task<DocumentResponse?> UpdateDocumentAsync(
+    int documentId,
+    UpdateDocumentRequest request,
+    int userId);
     }
 }
