@@ -52,6 +52,42 @@ namespace PersonalDigitalVault.API.SecureVault.Services
             return fullPath;
         }
 
+        public async Task<byte[]> ReadDecryptedFileAsync(
+            string filePath,
+            byte[] key,
+            byte[] iv)
+        {
+            if (!File.Exists(filePath))
+            {
+                throw new FileNotFoundException(
+                    "Document file was not found.");
+            }
+
+            using var aes = Aes.Create();
+
+            aes.Key = key;
+            aes.IV = iv;
+
+            await using var fileStream =
+                new FileStream(
+                    filePath,
+                    FileMode.Open,
+                    FileAccess.Read,
+                    FileShare.Read);
+
+            await using var cryptoStream =
+                new CryptoStream(
+                    fileStream,
+                    aes.CreateDecryptor(),
+                    CryptoStreamMode.Read);
+
+            using var memoryStream = new MemoryStream();
+
+            await cryptoStream.CopyToAsync(memoryStream);
+
+            return memoryStream.ToArray();
+        }
+
         public Task DeleteFileAsync(string filePath)
         {
             if (File.Exists(filePath))

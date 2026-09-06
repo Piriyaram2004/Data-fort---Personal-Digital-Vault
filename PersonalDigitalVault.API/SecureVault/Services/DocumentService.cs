@@ -405,6 +405,51 @@ namespace PersonalDigitalVault.API.SecureVault.Services
                 throw;
             }
         }
+        public async Task<(byte[] FileBytes, string FileName, string ContentType)>
+    DownloadDocumentAsync(
+        int documentId,
+        int userId)
+        {
+            var document =
+                await _documentRepository.GetByIdAsync(documentId);
+
+            if (document == null)
+            {
+                throw new KeyNotFoundException(
+                    "Document not found.");
+            }
+
+            if (document.UserId != userId)
+            {
+                throw new UnauthorizedAccessException(
+                    "You do not have access to this document.");
+            }
+
+            if (string.IsNullOrWhiteSpace(document.FilePath))
+            {
+                throw new InvalidOperationException(
+                    "Document file is not available.");
+            }
+
+            var encryptionKey =
+                _encryptionService.GetKey();
+
+            var fileBytes =
+                await _fileStorageService.ReadDecryptedFileAsync(
+                    document.FilePath,
+                    encryptionKey,
+                    document.EncryptionIV);
+
+            var contentType =
+                string.IsNullOrWhiteSpace(document.FileType)
+                    ? "application/octet-stream"
+                    : document.FileType;
+
+            return (
+                fileBytes,
+                document.OriginalFileName,
+                contentType);
+        }
     }
 
 

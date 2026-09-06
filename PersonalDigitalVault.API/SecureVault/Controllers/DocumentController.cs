@@ -189,5 +189,46 @@ namespace PersonalDigitalVault.API.SecureVault.Controllers
                 return Conflict(ex.Message);
             }
         }
+        [HttpGet("{id}/download")]
+        public async Task<IActionResult> DownloadDocument(int id)
+        {
+            try
+            {
+                var userIdClaim =
+                    User.FindFirstValue(ClaimTypes.NameIdentifier)
+                    ?? User.FindFirstValue("sub");
+
+                if (!int.TryParse(userIdClaim, out var userId))
+                {
+                    return Unauthorized("Invalid user identity.");
+                }
+
+                var result =
+                    await _documentService.DownloadDocumentAsync(
+                        id,
+                        userId);
+
+                return File(
+                    result.FileBytes,
+                    result.ContentType,
+                    result.FileName);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Forbid();
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (FileNotFoundException)
+            {
+                return NotFound("Document file was not found.");
+            }
+        }
     }
 }

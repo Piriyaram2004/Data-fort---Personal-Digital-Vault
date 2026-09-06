@@ -8,6 +8,11 @@
             byte[] key,
             byte[] iv);
 
+        Task<byte[]> ReadDecryptedFileAsync(
+            string filePath,
+            byte[] key,
+            byte[] iv);
+
         Task DeleteFileAsync(string filePath);
     }
 }

@@ -22,5 +22,10 @@ namespace PersonalDigitalVault.API.SecureVault.Services
         Task<DocumentResponse> UploadDocumentAsync(
     DocumentUploadRequest request,
     int userId);
+
+        Task<(byte[] FileBytes, string FileName, string ContentType)>
+    DownloadDocumentAsync(
+        int documentId,
+        int userId);
     }
 }
