@@ -44,16 +44,43 @@ namespace PersonalDigitalVault.API.Authentication.Validators
             {
                 errors.Add("Password is required.");
             }
-            else if (request.Password.Length < 8)
+            else
             {
-                errors.Add("Password must be at least 8 characters.");
+                if (request.Password.Length < 8)
+                {
+                    errors.Add("Password must be at least 8 characters.");
+                }
+
+                if (!request.Password.Any(char.IsUpper))
+                {
+                    errors.Add("Password must contain at least one uppercase letter.");
+                }
+
+                if (!request.Password.Any(char.IsLower))
+                {
+                    errors.Add("Password must contain at least one lowercase letter.");
+                }
+
+                if (!request.Password.Any(char.IsDigit))
+                {
+                    errors.Add("Password must contain at least one number.");
+                }
+
+                if (!request.Password.Any(
+                    character => !char.IsLetterOrDigit(character)))
+                {
+                    errors.Add("Password must contain at least one special character.");
+                }
             }
 
-            if (request.Password != request.ConfirmPassword)
+            if (string.IsNullOrWhiteSpace(request.ConfirmPassword))
+            {
+                errors.Add("Confirm password is required.");
+            }
+            else if (request.Password != request.ConfirmPassword)
             {
                 errors.Add("Password and confirm password do not match.");
             }
-
             return errors;
         }
     }
