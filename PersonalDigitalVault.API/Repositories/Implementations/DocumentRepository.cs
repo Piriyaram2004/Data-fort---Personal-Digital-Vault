@@ -30,5 +30,23 @@ namespace PersonalDigitalVault.API.Repositories.Implementations
                     !d.IsDeleted)
                 .ToListAsync();
         }
+
+        public async Task<bool> ExistsByNameAsync(
+            int userId,
+            int? folderId,
+            string normalizedFileName)
+        {
+            return await _context.Documents.AnyAsync(d =>
+                d.UserId == userId &&
+                d.FolderId == folderId &&
+                d.NormalizedFileName == normalizedFileName &&
+                !d.IsDeleted);
+        }
+
+        public async Task AddAsync(Document document)
+        {
+            await _context.Documents.AddAsync(document);
+            await _context.SaveChangesAsync();
+        }
     }
 }

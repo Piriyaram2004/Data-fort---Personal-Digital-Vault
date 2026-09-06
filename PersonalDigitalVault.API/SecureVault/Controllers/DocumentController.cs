@@ -1,6 +1,7 @@
 ﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using PersonalDigitalVault.API.SecureVault.DTOs;
 using PersonalDigitalVault.API.SecureVault.Services;
 
 namespace PersonalDigitalVault.API.SecureVault.Controllers
@@ -33,6 +34,48 @@ namespace PersonalDigitalVault.API.SecureVault.Controllers
                 await _documentService.GetDocumentsAsync(userId);
 
             return Ok(documents);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateDocument(
+            CreateDocumentRequest request)
+        {
+            try
+            {
+                var userIdClaim =
+                    User.FindFirstValue(ClaimTypes.NameIdentifier)
+                    ?? User.FindFirstValue("sub");
+
+                if (!int.TryParse(userIdClaim, out var userId))
+                {
+                    return Unauthorized("Invalid user identity.");
+                }
+
+                var document =
+                    await _documentService.CreateDocumentAsync(
+                        request,
+                        userId);
+
+                return StatusCode(
+                    StatusCodes.Status201Created,
+                    document);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Forbid();
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(ex.Message);
+            }
         }
     }
 }

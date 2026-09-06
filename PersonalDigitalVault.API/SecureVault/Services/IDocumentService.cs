@@ -5,5 +5,9 @@ namespace PersonalDigitalVault.API.SecureVault.Services
     public interface IDocumentService
     {
         Task<List<DocumentResponse>> GetDocumentsAsync(int userId);
+
+        Task<DocumentResponse> CreateDocumentAsync(
+            CreateDocumentRequest request,
+            int userId);
     }
 }
