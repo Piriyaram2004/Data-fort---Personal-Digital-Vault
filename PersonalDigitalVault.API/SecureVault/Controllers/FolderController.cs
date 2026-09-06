@@ -76,5 +76,75 @@ namespace PersonalDigitalVault.API.SecureVault.Controllers
 
             return Ok(folders);
         }
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateFolder(
+    int id,
+    UpdateFolderRequest request)
+        {
+            try
+            {
+                var userIdClaim =
+                    User.FindFirstValue(ClaimTypes.NameIdentifier)
+                    ?? User.FindFirstValue("sub");
+
+                if (!int.TryParse(userIdClaim, out var userId))
+                {
+                    return Unauthorized("Invalid user identity.");
+                }
+
+                var folder = await _folderService.UpdateFolderAsync(
+                    id,
+                    request,
+                    userId);
+
+                return Ok(folder);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Forbid();
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(ex.Message);
+            }
+
+        }
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteFolder(int id)
+        {
+            try
+            {
+                var userIdClaim =
+                    User.FindFirstValue(ClaimTypes.NameIdentifier)
+                    ?? User.FindFirstValue("sub");
+
+                if (!int.TryParse(userIdClaim, out var userId))
+                {
+                    return Unauthorized("Invalid user identity.");
+                }
+
+                await _folderService.DeleteFolderAsync(
+                    id,
+                    userId);
+
+                return NoContent();
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Forbid();
+            }
+        }
     }
 }
