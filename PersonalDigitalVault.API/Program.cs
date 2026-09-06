@@ -81,6 +81,8 @@ builder.Services.AddScoped<ShareLinkValidator>();
 
 builder.Services.AddScoped<IFolderRepository, FolderRepository>();
 builder.Services.AddScoped<IFolderService, FolderService>();
+builder.Services.AddScoped<IDocumentService, DocumentService>();
+builder.Services.AddScoped<IDocumentRepository, DocumentRepository>();
 
 
 // ==============================

@@ -17,7 +17,18 @@ namespace PersonalDigitalVault.API.Repositories.Implementations
         public async Task<Document?> GetByIdAsync(int documentId)
         {
             return await _context.Documents
-                .FirstOrDefaultAsync(d => d.DocumentId == documentId);
+                .FirstOrDefaultAsync(d =>
+                    d.DocumentId == documentId &&
+                    !d.IsDeleted);
+        }
+
+        public async Task<List<Document>> GetByUserIdAsync(int userId)
+        {
+            return await _context.Documents
+                .Where(d =>
+                    d.UserId == userId &&
+                    !d.IsDeleted)
+                .ToListAsync();
         }
     }
 }
