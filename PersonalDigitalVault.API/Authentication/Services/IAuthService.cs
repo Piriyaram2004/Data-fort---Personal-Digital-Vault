@@ -9,5 +9,6 @@ namespace PersonalDigitalVault.API.Authentication.Services
         Task ForgotPasswordAsync(ForgotPasswordRequestDto request);
         Task ResetPasswordAsync(ResetPasswordRequestDto request);
         Task ChangePasswordAsync(int userId,ChangePasswordRequestDto request);
+        Task<ProfileResponseDto> GetProfileAsync(int userId);
     }
 }

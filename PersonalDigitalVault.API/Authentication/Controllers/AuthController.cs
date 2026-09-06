@@ -227,5 +227,35 @@ namespace PersonalDigitalVault.API.Authentication.Controllers
                 });
             }
         }
+
+        [Authorize]
+        [HttpGet("profile")]
+        public async Task<IActionResult> GetProfile()
+        {
+            var userIdClaim = User.FindFirstValue(
+                ClaimTypes.NameIdentifier);
+
+            if (!int.TryParse(userIdClaim, out var userId))
+            {
+                return Unauthorized(new
+                {
+                    message = "Invalid authentication token."
+                });
+            }
+
+            try
+            {
+                var profile = await _authService.GetProfileAsync(userId);
+
+                return Ok(profile);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Unauthorized(new
+                {
+                    message = "User account is not available."
+                });
+            }
+        }
     }
 }

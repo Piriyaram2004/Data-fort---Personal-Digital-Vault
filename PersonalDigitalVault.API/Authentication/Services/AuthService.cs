@@ -206,8 +206,8 @@ namespace PersonalDigitalVault.API.Authentication.Services
         }
 
         public async Task ChangePasswordAsync(
-        int userId,
-        ChangePasswordRequestDto request)
+            int userId,
+            ChangePasswordRequestDto request)
         {
             var user = await _userRepository.GetByIdAsync(userId);
 
@@ -240,6 +240,27 @@ namespace PersonalDigitalVault.API.Authentication.Services
             user.UpdatedAt = now;
 
             await _userRepository.SaveChangesAsync();
+        }
+
+        public async Task<ProfileResponseDto> GetProfileAsync(int userId)
+        {
+            var user = await _userRepository.GetByIdAsync(userId);
+
+            if (user == null || !user.IsActive)
+            {
+                throw new UnauthorizedAccessException(
+                    "User account is not available.");
+            }
+
+            return new ProfileResponseDto
+            {
+                UserId = user.UserId,
+                Email = user.Email,
+                UserName = user.UserName,
+                FullName = user.FullName,
+                ProfileImageUrl = user.ProfileImageUrl,
+                Role = user.Role.RoleName
+            };
         }
     }
 }
