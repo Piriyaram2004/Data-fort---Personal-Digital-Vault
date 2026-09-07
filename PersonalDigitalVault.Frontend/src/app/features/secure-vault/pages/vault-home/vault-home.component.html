@@ -1,0 +1,71 @@
+<div class="space-y-8">
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-900">Secure Digital Vault</h1>
+      <p class="text-xs text-slate-500 mt-1">Encrypted personal file and credential store</p>
+    </div>
+    <div class="flex space-x-3">
+      <a routerLink="/vault/folders/new" class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold rounded-lg transition">
+        + New Folder
+      </a>
+      <a routerLink="/vault/documents/upload" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition">
+        + Upload File
+      </a>
+    </div>
+  </div>
+
+  @if (isLoading) {
+    <app-loading message="Loading vault overview..." />
+  } @else {
+    <!-- Folders Section -->
+    <section>
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-base font-bold text-slate-800">Folders</h2>
+        <a routerLink="/vault/folders" class="text-xs text-blue-600 font-semibold hover:underline">View All</a>
+      </div>
+      @if (recentFolders.length === 0) {
+        <p class="text-xs text-slate-400 italic">No folders created yet.</p>
+      } @else {
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          @for (folder of recentFolders; track folder.id) {
+            <app-folder-card [folder]="folder" />
+          }
+        </div>
+      }
+    </section>
+
+    <!-- Documents Section -->
+    <section>
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-base font-bold text-slate-800">Recent Documents</h2>
+        <a routerLink="/vault/documents" class="text-xs text-blue-600 font-semibold hover:underline">View All</a>
+      </div>
+      @if (recentDocuments.length === 0) {
+        <p class="text-xs text-slate-400 italic">No documents uploaded yet.</p>
+      } @else {
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          @for (doc of recentDocuments; track doc.id) {
+            <app-document-card [document]="doc" />
+          }
+        </div>
+      }
+    </section>
+
+    <!-- Credentials Section -->
+    <section>
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-base font-bold text-slate-800">Saved Credentials</h2>
+        <a routerLink="/vault/credentials" class="text-xs text-blue-600 font-semibold hover:underline">View All</a>
+      </div>
+      @if (recentCredentials.length === 0) {
+        <p class="text-xs text-slate-400 italic">No credentials stored yet.</p>
+      } @else {
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          @for (cred of recentCredentials; track cred.id) {
+            <app-credential-card [credential]="cred" />
+          }
+        </div>
+      }
+    </section>
+  }
+</div>

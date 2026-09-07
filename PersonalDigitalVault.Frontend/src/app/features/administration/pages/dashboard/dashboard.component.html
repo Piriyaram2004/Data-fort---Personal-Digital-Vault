@@ -1,0 +1,19 @@
+<div class="space-y-6">
+  <div>
+    <h1 class="text-2xl font-bold text-slate-900">Admin System Dashboard</h1>
+    <p class="text-xs text-slate-500 mt-1">High-level system metrics and vault statistics</p>
+  </div>
+
+  @if (isLoading) {
+    <app-loading message="Loading system metrics..." />
+  } @else if (stats) {
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+      <app-stat-card title="Registered Users" [value]="stats.totalUsers" description="Total registered accounts" />
+      <app-stat-card title="Stored Documents" [value]="stats.totalDocuments" description="Encrypted files in vault" />
+      <app-stat-card title="Vault Folders" [value]="stats.totalFolders" description="Total folder containers" />
+      <app-stat-card title="Credentials" [value]="stats.totalCredentials" description="Stored login secrets" />
+      <app-stat-card title="Storage Consumed" [value]="(stats.totalStorageSizeBytes | fileSize)" description="Total encrypted byte size" />
+      <app-stat-card title="Active Share Links" [value]="stats.activeShareLinks" description="Live public share links" />
+    </div>
+  }
+</div>
