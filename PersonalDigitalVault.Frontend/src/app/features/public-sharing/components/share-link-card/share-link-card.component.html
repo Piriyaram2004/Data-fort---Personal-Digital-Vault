@@ -1,0 +1,26 @@
+<div class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs hover:shadow-md transition flex flex-col justify-between h-44">
+  <div class="flex items-start justify-between">
+    <div class="w-10 h-10 bg-purple-50 rounded-lg flex items-center justify-center text-purple-600">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
+    </div>
+    @if (link.isRevoked) {
+      <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-red-100 text-red-800">Revoked</span>
+    } @else {
+      <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-100 text-emerald-800">Active</span>
+    }
+  </div>
+
+  <div>
+    <h3 class="font-semibold text-slate-900 text-sm truncate">{{ link.documentName }}</h3>
+    <p class="text-xs text-slate-500 mt-0.5">Expires: {{ link.expiryDate | date:'short' }}</p>
+  </div>
+
+  <div class="pt-2 border-t border-slate-100 flex items-center justify-between">
+    <button (click)="copyUrl()" [disabled]="link.isRevoked" class="text-xs text-blue-600 hover:underline disabled:opacity-40 font-medium">
+      {{ copied ? 'Link Copied!' : 'Copy Share URL' }}
+    </button>
+    @if (!link.isRevoked) {
+      <button (click)="onRevoke()" class="text-xs text-red-600 hover:underline font-medium">Revoke</button>
+    }
+  </div>
+</div>
