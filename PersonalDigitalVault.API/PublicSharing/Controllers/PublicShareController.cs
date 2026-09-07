@@ -31,5 +31,25 @@ namespace PersonalDigitalVault.API.PublicSharing.Controllers
 
             return Ok(result);
         }
+
+        [HttpGet("{token}/download")]
+        public async Task<IActionResult> DownloadPublicShare(string token)
+        {
+            var result = await _shareAccessService
+                .DownloadPublicShareAsync(token);
+
+            if (result == null)
+            {
+                return NotFound(new
+                {
+                    message = "Share link is invalid, expired, revoked, or unavailable."
+                });
+            }
+
+            return File(
+                result.Value.FileBytes,
+                result.Value.ContentType,
+                result.Value.FileName);
+        }
     }
 }

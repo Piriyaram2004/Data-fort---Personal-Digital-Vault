@@ -6,5 +6,8 @@ namespace PersonalDigitalVault.API.PublicSharing.Services.Interfaces
     {
         Task<PublicShareLinkDto?> GetPublicShareAsync(
             string token);
+
+        Task<(byte[] FileBytes, string FileName, string ContentType)?>
+            DownloadPublicShareAsync(string token);
     }
 }
