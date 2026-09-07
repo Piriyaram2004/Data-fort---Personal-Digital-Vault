@@ -5,5 +5,7 @@ namespace PersonalDigitalVault.API.Repositories.Interfaces
     public interface ICredentialRepository
     {
         Task<List<Credential>> GetByUserIdAsync(int userId);
+
+        Task AddAsync(Credential credential);
     }
 }

@@ -14,12 +14,17 @@ namespace PersonalDigitalVault.API.Repositories.Implementations
             _context = context;
         }
 
-        public async Task<List<Credential>> GetByUserIdAsync(
-            int userId)
+        public async Task<List<Credential>> GetByUserIdAsync(int userId)
         {
             return await _context.Credentials
                 .Where(c => c.UserId == userId)
                 .ToListAsync();
+        }
+
+        public async Task AddAsync(Credential credential)
+        {
+            await _context.Credentials.AddAsync(credential);
+            await _context.SaveChangesAsync();
         }
     }
 }
