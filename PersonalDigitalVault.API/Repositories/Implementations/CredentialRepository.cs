@@ -21,9 +21,31 @@ namespace PersonalDigitalVault.API.Repositories.Implementations
                 .ToListAsync();
         }
 
+        public async Task<Credential?> GetByIdAsync(
+            int credentialId,
+            int userId)
+        {
+            return await _context.Credentials
+                .FirstOrDefaultAsync(c =>
+                    c.CredentialId == credentialId &&
+                    c.UserId == userId);
+        }
+
         public async Task AddAsync(Credential credential)
         {
             await _context.Credentials.AddAsync(credential);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task UpdateAsync(Credential credential)
+        {
+            _context.Credentials.Update(credential);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task DeleteAsync(Credential credential)
+        {
+            _context.Credentials.Remove(credential);
             await _context.SaveChangesAsync();
         }
     }

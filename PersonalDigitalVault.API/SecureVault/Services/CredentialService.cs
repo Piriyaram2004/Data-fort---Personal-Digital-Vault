@@ -98,5 +98,65 @@ namespace PersonalDigitalVault.API.SecureVault.Services
                 UpdatedAt = credential.UpdatedAt
             };
         }
+        public async Task<CredentialResponse?> UpdateCredentialAsync(
+    int credentialId,
+    int userId,
+    UpdateCredentialRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request.Title))
+                throw new ArgumentException("Title is required.");
+
+            if (string.IsNullOrWhiteSpace(request.UserName))
+                throw new ArgumentException("Username is required.");
+
+            if (string.IsNullOrWhiteSpace(request.Password))
+                throw new ArgumentException("Password is required.");
+
+            var credential = await _credentialRepository.GetByIdAsync(
+                credentialId,
+                userId);
+
+            if (credential == null)
+                return null;
+
+            if (request.FolderId.HasValue)
+            {
+                var folder = await _folderRepository.GetByIdAsync(
+                    request.FolderId.Value);
+
+                if (folder == null ||
+                    folder.UserId != userId ||
+                    folder.IsDeleted)
+                {
+                    throw new UnauthorizedAccessException(
+                        "Invalid folder.");
+                }
+            }
+
+            credential.FolderId = request.FolderId;
+            credential.Title = request.Title.Trim();
+            credential.UserName = request.UserName.Trim();
+            credential.PasswordEncrypted =
+                _encryptionService.EncryptCredential(request.Password);
+            credential.Notes = string.IsNullOrWhiteSpace(request.Notes)
+                ? null
+                : request.Notes.Trim();
+            credential.UpdatedAt = DateTime.UtcNow;
+
+            await _credentialRepository.UpdateAsync(credential);
+
+            return new CredentialResponse
+            {
+                CredentialId = credential.CredentialId,
+                UserId = credential.UserId,
+                FolderId = credential.FolderId,
+                Title = credential.Title,
+                UserName = credential.UserName,
+                Password = request.Password,
+                Notes = credential.Notes,
+                CreatedAt = credential.CreatedAt,
+                UpdatedAt = credential.UpdatedAt
+            };
+        }
     }
 }

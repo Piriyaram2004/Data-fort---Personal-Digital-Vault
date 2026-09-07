@@ -65,5 +65,39 @@ namespace PersonalDigitalVault.API.SecureVault.Controllers
                 return Unauthorized(ex.Message);
             }
         }
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateCredential(
+    int id,
+    [FromBody] UpdateCredentialRequest request)
+        {
+            var userIdClaim =
+                User.FindFirstValue(ClaimTypes.NameIdentifier)
+                ?? User.FindFirstValue("sub");
+
+            if (!int.TryParse(userIdClaim, out var userId))
+                return Unauthorized("Invalid user identity.");
+
+            try
+            {
+                var credential =
+                    await _credentialService.UpdateCredentialAsync(
+                        id,
+                        userId,
+                        request);
+
+                if (credential == null)
+                    return NotFound("Credential not found.");
+
+                return Ok(credential);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(ex.Message);
+            }
+        }
     }
 }

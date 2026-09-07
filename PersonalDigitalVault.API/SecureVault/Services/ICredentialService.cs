@@ -9,5 +9,10 @@ namespace PersonalDigitalVault.API.SecureVault.Services
         Task<CredentialResponse> CreateCredentialAsync(
             int userId,
             CreateCredentialRequest request);
+
+        Task<CredentialResponse?> UpdateCredentialAsync(
+            int credentialId,
+            int userId,
+            UpdateCredentialRequest request);
     }
 }
