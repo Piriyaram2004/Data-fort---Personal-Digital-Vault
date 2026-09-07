@@ -1,0 +1,54 @@
+import { Injectable } from '@angular/core';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class TokenService {
+  private readonly TOKEN_KEY = 'auth_token';
+
+  getToken(): string | null {
+    return sessionStorage.getItem(this.TOKEN_KEY);
+  }
+
+  setToken(token: string): void {
+    sessionStorage.setItem(this.TOKEN_KEY, token);
+  }
+
+  clearToken(): void {
+    sessionStorage.removeItem(this.TOKEN_KEY);
+  }
+
+  hasToken(): boolean {
+    return !!this.getToken();
+  }
+
+  getUserRole(): string | null {
+    const payload = this.getJwtPayload();
+    if (!payload) return null;
+    return payload.role || payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] || null;
+  }
+
+  getUserEmail(): string | null {
+    const payload = this.getJwtPayload();
+    if (!payload) return null;
+    return payload.email || payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'] || null;
+  }
+
+  isAdmin(): boolean {
+    const role = this.getUserRole();
+    return role?.toLowerCase() === 'admin';
+  }
+
+  private getJwtPayload(): any {
+    const token = this.getToken();
+    if (!token) return null;
+    try {
+      const parts = token.split('.');
+      if (parts.length !== 3) return null;
+      const payload = atob(parts[1].replace(/-/g, '+').replace(/_/g, '/'));
+      return JSON.parse(payload);
+    } catch {
+      return null;
+    }
+  }
+}
