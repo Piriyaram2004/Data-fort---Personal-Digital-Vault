@@ -16,8 +16,8 @@ export class AuthService {
   private apiUrl = `${environment.apiUrl}/auth`;
 
   // Endpoint: POST /api/auth/login
-  login(credentials: LoginRequest): Observable<ApiResponse<AuthResponse>> {
-    return this.http.post<ApiResponse<AuthResponse>>(`${this.apiUrl}/login`, credentials);
+  login(credentials: LoginRequest): Observable<AuthResponse> {
+  return this.http.post<AuthResponse>(`${this.apiUrl}/login`, credentials);
   }
 
   // Endpoint: POST /api/auth/register
