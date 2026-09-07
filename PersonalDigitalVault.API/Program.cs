@@ -68,10 +68,10 @@ builder.Services.AddScoped<IAdminAuditLogService, AdminAuditLogService>();
 // ==============================
 
 builder.Services.AddScoped<IShareLinkRepository, ShareLinkRepository>();
-builder.Services.AddScoped<IDocumentRepository, DocumentRepository>();
 
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IShareService, ShareService>();
+builder.Services.AddScoped<IShareAccessService, ShareAccessService>();
 
 builder.Services.AddScoped<ShareLinkValidator>();
 
