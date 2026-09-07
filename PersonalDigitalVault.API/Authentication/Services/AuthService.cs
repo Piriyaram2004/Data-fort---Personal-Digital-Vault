@@ -156,7 +156,7 @@ namespace PersonalDigitalVault.API.Authentication.Services
                 .AddAsync(resetToken);
 
             var resetLink =
-                $"http://localhost:4200/reset-password?token={Uri.EscapeDataString(rawToken)}&email={Uri.EscapeDataString(user.Email)}";
+                $"http://localhost:4200/auth/reset-password?token={Uri.EscapeDataString(rawToken)}&email={Uri.EscapeDataString(user.Email)}";
 
             await _emailService.SendPasswordResetEmailAsync(
                 user.Email,

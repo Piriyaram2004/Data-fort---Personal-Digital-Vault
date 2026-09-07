@@ -56,9 +56,20 @@ resetPassword(
 }
 
   // Endpoint: POST /api/auth/change-password
-  changePassword(currentPassword: string, newPassword: string): Observable<ApiResponse<void>> {
-    return this.http.post<ApiResponse<void>>(`${this.apiUrl}/change-password`, { currentPassword, newPassword });
-  }
+changePassword(
+  currentPassword: string,
+  newPassword: string,
+  confirmPassword: string
+): Observable<{ message: string }> {
+  return this.http.post<{ message: string }>(
+    `${this.apiUrl}/change-password`,
+    {
+      currentPassword,
+      newPassword,
+      confirmPassword
+    }
+  );
+}
 
   // Endpoint: GET /api/auth/profile
   getProfile(): Observable<ApiResponse<UserProfile>> {
