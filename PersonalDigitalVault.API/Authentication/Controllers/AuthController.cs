@@ -17,6 +17,7 @@ namespace PersonalDigitalVault.API.Authentication.Controllers
         private readonly ForgotPasswordRequestValidator _forgotPasswordValidator;
         private readonly ResetPasswordRequestValidator _resetPasswordValidator;
         private readonly ChangePasswordRequestValidator _changePasswordValidator;
+        private readonly UpdateProfileRequestValidator _updateProfileValidator;
 
         public AuthController(
             IAuthService authService,
@@ -24,7 +25,8 @@ namespace PersonalDigitalVault.API.Authentication.Controllers
             LoginRequestValidator loginValidator,
             ForgotPasswordRequestValidator forgotPasswordValidator,
             ResetPasswordRequestValidator resetPasswordValidator,
-            ChangePasswordRequestValidator changePasswordValidator)
+            ChangePasswordRequestValidator changePasswordValidator,
+            UpdateProfileRequestValidator updateProfileValidator)
         {
             _authService = authService;
             _registerValidator = registerValidator;
@@ -32,6 +34,7 @@ namespace PersonalDigitalVault.API.Authentication.Controllers
             _forgotPasswordValidator = forgotPasswordValidator;
             _resetPasswordValidator = resetPasswordValidator;
             _changePasswordValidator = changePasswordValidator;
+            _updateProfileValidator = updateProfileValidator;
         }
 
         [HttpPost("register")]
@@ -248,6 +251,59 @@ namespace PersonalDigitalVault.API.Authentication.Controllers
                 var profile = await _authService.GetProfileAsync(userId);
 
                 return Ok(profile);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Unauthorized(new
+                {
+                    message = "User account is not available."
+                });
+            }
+        }
+
+        [Authorize]
+        [HttpPut("profile")]
+        public async Task<IActionResult> UpdateProfile(
+            UpdateProfileRequestDto request)
+        {
+            var errors = _updateProfileValidator.Validate(request);
+
+            if (errors.Count > 0)
+            {
+                return BadRequest(new
+                {
+                    message = "Validation failed.",
+                    errors
+                });
+            }
+
+            var userIdClaim = User.FindFirstValue(
+                ClaimTypes.NameIdentifier);
+
+            if (!int.TryParse(userIdClaim, out var userId))
+            {
+                return Unauthorized(new
+                {
+                    message = "Invalid authentication token."
+                });
+            }
+
+            try
+            {
+                var profile = await _authService.UpdateProfileAsync(
+                    userId,
+                    request);
+
+                return Ok(profile);
+            }
+            catch (InvalidOperationException ex)
+                when (ex.Message == "Email is already registered." ||
+                      ex.Message == "User name is already taken.")
+            {
+                return Conflict(new
+                {
+                    message = ex.Message
+                });
             }
             catch (UnauthorizedAccessException)
             {

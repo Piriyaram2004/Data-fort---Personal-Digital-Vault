@@ -49,6 +49,7 @@ builder.Services.AddScoped<PasswordResetTokenHelper>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<ResetPasswordRequestValidator>();
 builder.Services.AddScoped<ChangePasswordRequestValidator>();
+builder.Services.AddScoped<UpdateProfileRequestValidator>();
 
 // ==============================
 // Administration Module DI
