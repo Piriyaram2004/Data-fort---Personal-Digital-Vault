@@ -21,12 +21,12 @@
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
         // Navigation Properties
-        public User User { get; set; } = null!;
+        public User User { get; set; } = null!; // prevent the warning for non-nullable reference type
 
         public Folder? ParentFolder { get; set; }
 
         public ICollection<Folder> SubFolders { get; set; }
-            = new List<Folder>();
+            = new List<Folder>(); // this is used to start with a [] instead of null ;
 
         public ICollection<Document> Documents { get; set; }
             = new List<Document>();

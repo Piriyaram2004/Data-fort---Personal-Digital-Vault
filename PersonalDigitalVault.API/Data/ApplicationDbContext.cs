@@ -24,7 +24,9 @@ namespace PersonalDigitalVault.API.Data
         public DbSet<ShareLink> ShareLinks { get; set; }
         public DbSet<AuditLog> AuditLogs { get; set; }
 
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        // exact database rules and relationships I want to enforce,
+        // including unique constraints, foreign key relationships, and cascade delete behaviors.
+        protected override void OnModelCreating(ModelBuilder modelBuilder) 
         {
             base.OnModelCreating(modelBuilder);
 
@@ -81,13 +83,14 @@ namespace PersonalDigitalVault.API.Data
             // ==============================
 
             modelBuilder.Entity<Folder>()
-                .HasKey(f => f.FolderId);
+                .HasKey(f => f.FolderId); // Primary Key
 
             modelBuilder.Entity<Folder>()
-                .HasOne(f => f.User)
-                .WithMany(u => u.Folders)
-                .HasForeignKey(f => f.UserId)
-                .OnDelete(DeleteBehavior.NoAction);
+                .HasOne(f => f.User) // a folder belongs to one user
+                .WithMany(u => u.Folders)  // user can have many folders
+                .HasForeignKey(f => f.UserId)  // foreign key in Folder table is folder.UserId
+                .OnDelete(DeleteBehavior.NoAction); // does not  automatically delete the child folders
+                                                    // when the user is deleted
 
             // Self-reference
             modelBuilder.Entity<Folder>()
@@ -103,9 +106,9 @@ namespace PersonalDigitalVault.API.Data
                     f.UserId,
                     f.NormalizedFolderName
                 })
-                .IsUnique()
-                .HasFilter("[ParentFolderId] IS NULL AND [IsDeleted] = 0");
-
+                .IsUnique()  // DB level unique constraint to
+                             // prevent duplicate folder names for the same user at the root level
+                .HasFilter("[ParentFolderId] IS NULL AND [IsDeleted] = 0"); // filter the root folders that are not deleted
             // Child folder duplicate prevention
             modelBuilder.Entity<Folder>()
                 .HasIndex(f => new
@@ -145,7 +148,7 @@ namespace PersonalDigitalVault.API.Data
                     d.NormalizedFileName
                 })
                 .IsUnique()
-                .HasFilter("[FolderId] IS NULL AND [IsDeleted] = 0");
+                .HasFilter("[FolderId] IS NULL AND [IsDeleted] = 0"); // filter the root documents that are not deleted
 
             // Document inside folder duplicate prevention
             modelBuilder.Entity<Document>()
@@ -156,7 +159,7 @@ namespace PersonalDigitalVault.API.Data
                     d.NormalizedFileName
                 })
                 .IsUnique()
-                .HasFilter("[FolderId] IS NOT NULL AND [IsDeleted] = 0");
+                .HasFilter("[FolderId] IS NOT NULL AND [IsDeleted] = 0"); //filter the documents inside folders that are not deleted
 
 
             // ==============================

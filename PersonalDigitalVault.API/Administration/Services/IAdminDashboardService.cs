@@ -1,6 +1,9 @@
-﻿namespace PersonalDigitalVault.API.Administration.Services
+﻿using PersonalDigitalVault.API.Administration.DTOs;
+
+namespace PersonalDigitalVault.API.Administration.Services
 {
-    public class IAdminDashboardService
+    public interface IAdminDashboardService
     {
+        Task<AdminDashboardDto> GetDashboardAsync();
     }
 }

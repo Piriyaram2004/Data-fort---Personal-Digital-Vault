@@ -9,7 +9,9 @@ namespace PersonalDigitalVault.API.Repositories.Interfaces
         Task<bool> UserNameExistsAsync(string userName);
 
         Task<User?> GetByEmailAsync(string email);
+        Task<User?> GetByIdAsync(int userId);
 
         Task AddAsync(User user);
+        Task SaveChangesAsync();
     }
 }

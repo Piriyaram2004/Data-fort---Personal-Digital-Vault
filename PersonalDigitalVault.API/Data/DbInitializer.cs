@@ -9,7 +9,8 @@ namespace PersonalDigitalVault.API.Data
             ApplicationDbContext context)
         {
             var userRoleExists = await context.Roles
-                .AnyAsync(r => r.RoleName == "User");
+                .AnyAsync(r => r.RoleName == "User"); // Check if the "User" role already
+                                                      // exists on the roles table in the database
 
             if (!userRoleExists)
             {
@@ -38,7 +39,7 @@ namespace PersonalDigitalVault.API.Data
                 });
             }
 
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(); //send the changes(pending) to the database
         }
     }
 }
