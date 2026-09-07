@@ -158,5 +158,20 @@ namespace PersonalDigitalVault.API.SecureVault.Services
                 UpdatedAt = credential.UpdatedAt
             };
         }
+        public async Task<bool> DeleteCredentialAsync(
+    int credentialId,
+    int userId)
+        {
+            var credential = await _credentialRepository.GetByIdAsync(
+                credentialId,
+                userId);
+
+            if (credential == null)
+                return false;
+
+            await _credentialRepository.DeleteAsync(credential);
+
+            return true;
+        }
     }
 }

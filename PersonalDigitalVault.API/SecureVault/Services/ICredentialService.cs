@@ -14,5 +14,8 @@ namespace PersonalDigitalVault.API.SecureVault.Services
             int credentialId,
             int userId,
             UpdateCredentialRequest request);
+        Task<bool> DeleteCredentialAsync(
+        int credentialId,
+        int userId);
     }
 }

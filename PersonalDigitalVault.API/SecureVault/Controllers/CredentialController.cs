@@ -99,5 +99,24 @@ namespace PersonalDigitalVault.API.SecureVault.Controllers
                 return Unauthorized(ex.Message);
             }
         }
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteCredential(int id)
+        {
+            var userIdClaim =
+                User.FindFirstValue(ClaimTypes.NameIdentifier)
+                ?? User.FindFirstValue("sub");
+
+            if (!int.TryParse(userIdClaim, out var userId))
+                return Unauthorized("Invalid user identity.");
+
+            var deleted = await _credentialService.DeleteCredentialAsync(
+                id,
+                userId);
+
+            if (!deleted)
+                return NotFound("Credential not found.");
+
+            return NoContent();
+        }
     }
 }
