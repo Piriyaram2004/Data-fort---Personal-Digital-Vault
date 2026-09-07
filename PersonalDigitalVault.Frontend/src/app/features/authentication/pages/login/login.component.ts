@@ -20,6 +20,11 @@ export class LoginComponent {
   password = '';
   errorMessage = '';
   isLoading = false;
+  showPassword = false;
+
+  togglePasswordVisibility(): void {
+  this.showPassword = !this.showPassword;
+}
 
   onLogin(): void {
     if (!this.email || !this.password) {
@@ -30,19 +35,24 @@ export class LoginComponent {
     this.isLoading = true;
     this.errorMessage = '';
 
-    this.authService.login({ email: this.email, password: this.password }).subscribe({
+    this.authService.login({
+      email: this.email,
+      password: this.password
+    }).subscribe({
       next: (res) => {
         this.isLoading = false;
-        if (res.success && res.data?.token) {
-          this.tokenService.setToken(res.data.token);
+
+        if (res.token) {
+          this.tokenService.setToken(res.token);
           this.router.navigate(['/vault']);
         } else {
-          this.errorMessage = res.message || 'Login failed.';
+          this.errorMessage = 'Login failed.';
         }
       },
       error: (err) => {
         this.isLoading = false;
-        this.errorMessage = err.error?.message || 'Server error during login.';
+        this.errorMessage =
+          err.error?.message || 'Server error during login.';
       }
     });
   }
