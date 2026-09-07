@@ -1,0 +1,13 @@
+<div class="min-h-screen bg-amber-50/30 flex flex-col">
+  <app-navbar />
+  <div class="flex flex-1">
+    <app-sidebar class="hidden md:block" />
+    <main class="flex-1 p-6 overflow-y-auto">
+      <div class="mb-4 p-3 bg-amber-100 border border-amber-300 rounded-lg text-amber-800 text-xs font-semibold flex items-center justify-between">
+        <span>Admin Mode Active</span>
+        <span>Data Fort Security Console</span>
+      </div>
+      <router-outlet />
+    </main>
+  </div>
+</div>
