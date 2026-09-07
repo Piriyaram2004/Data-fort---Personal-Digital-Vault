@@ -7,5 +7,9 @@
         byte[] GetKey();
 
         Guid GetKeyId();
+
+        byte[] EncryptCredential(string value);
+
+        string DecryptCredential(byte[] encryptedValue);
     }
 }

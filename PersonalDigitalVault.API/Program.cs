@@ -86,7 +86,8 @@ builder.Services.AddScoped<IDocumentRepository, DocumentRepository>();
 builder.Services.AddScoped<IFileStorageService, FileStorageService>();
 builder.Services.AddScoped<IEncryptionService, EncryptionService>();
 builder.Services.AddScoped<IHashService, HashService>();
-
+builder.Services.AddScoped<ICredentialRepository, CredentialRepository>();
+builder.Services.AddScoped<ICredentialService, CredentialService>();
 // ==============================
 // JWT Authentication
 // ==============================
