@@ -30,14 +30,30 @@ export class AuthService {
   }
 
   // Endpoint: POST /api/auth/forgot-password
-  forgotPassword(email: string): Observable<ApiResponse<void>> {
-    return this.http.post<ApiResponse<void>>(`${this.apiUrl}/forgot-password`, { email });
-  }
+forgotPassword(email: string): Observable<{ message: string }> {
+  return this.http.post<{ message: string }>(
+    `${this.apiUrl}/forgot-password`,
+    { email }
+  );
+}
 
   // Endpoint: POST /api/auth/reset-password
-  resetPassword(email: string, token: string, newPassword: string): Observable<ApiResponse<void>> {
-    return this.http.post<ApiResponse<void>>(`${this.apiUrl}/reset-password`, { email, token, newPassword });
-  }
+resetPassword(
+  email: string,
+  token: string,
+  newPassword: string,
+  confirmPassword: string
+): Observable<{ message: string }> {
+  return this.http.post<{ message: string }>(
+    `${this.apiUrl}/reset-password`,
+    {
+      email,
+      token,
+      newPassword,
+      confirmPassword
+    }
+  );
+}
 
   // Endpoint: POST /api/auth/change-password
   changePassword(currentPassword: string, newPassword: string): Observable<ApiResponse<void>> {
