@@ -50,5 +50,23 @@ namespace PersonalDigitalVault.API.Repositories.Implementations
         {
             await _context.SaveChangesAsync();
         }
+
+        public async Task<bool> EmailExistsForOtherUserAsync(
+            string email,
+            int userId)
+        {
+            return await _context.Users.AnyAsync(
+                u => u.UserId != userId &&
+                     u.Email.ToLower() == email.ToLower());
+        }
+
+        public async Task<bool> UserNameExistsForOtherUserAsync(
+            string userName,
+            int userId)
+        {
+            return await _context.Users.AnyAsync(
+                u => u.UserId != userId &&
+                     u.UserName.ToLower() == userName.ToLower());
+        }
     }
 }

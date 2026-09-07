@@ -37,13 +37,17 @@ namespace PersonalDigitalVault.API.Authentication.Services
         public async Task<RegisterResponseDto> RegisterAsync(
             RegisterRequestDto request)
         {
-            if (await _userRepository.EmailExistsAsync(request.Email))
+            var email = request.Email.Trim();
+            var userName = request.UserName.Trim();
+            var fullName = request.FullName.Trim();
+
+            if (await _userRepository.EmailExistsAsync(email))
             {
                 throw new InvalidOperationException(
                     "Email is already registered.");
             }
 
-            if (await _userRepository.UserNameExistsAsync(request.UserName))
+            if (await _userRepository.UserNameExistsAsync(userName))
             {
                 throw new InvalidOperationException(
                     "User name is already taken.");
@@ -59,9 +63,9 @@ namespace PersonalDigitalVault.API.Authentication.Services
 
             var user = new User
             {
-                Email = request.Email.Trim(),
-                UserName = request.UserName.Trim(),
-                FullName = request.FullName.Trim(),
+                Email = email,
+                UserName = userName,
+                FullName = fullName,
                 RoleId = userRole.RoleId,
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow,
@@ -251,6 +255,56 @@ namespace PersonalDigitalVault.API.Authentication.Services
                 throw new UnauthorizedAccessException(
                     "User account is not available.");
             }
+
+            return new ProfileResponseDto
+            {
+                UserId = user.UserId,
+                Email = user.Email,
+                UserName = user.UserName,
+                FullName = user.FullName,
+                ProfileImageUrl = user.ProfileImageUrl,
+                Role = user.Role.RoleName
+            };
+        }
+
+        public async Task<ProfileResponseDto> UpdateProfileAsync(
+            int userId,
+            UpdateProfileRequestDto request)
+        {
+            var user = await _userRepository.GetByIdAsync(userId);
+
+            if (user == null || !user.IsActive)
+            {
+                throw new UnauthorizedAccessException(
+                    "User account is not available.");
+            }
+
+            var email = request.Email.Trim();
+            var userName = request.UserName.Trim();
+            var fullName = request.FullName.Trim();
+
+            if (await _userRepository.EmailExistsForOtherUserAsync(
+                email,
+                userId))
+            {
+                throw new InvalidOperationException(
+                    "Email is already registered.");
+            }
+
+            if (await _userRepository.UserNameExistsForOtherUserAsync(
+                userName,
+                userId))
+            {
+                throw new InvalidOperationException(
+                    "User name is already taken.");
+            }
+
+            user.Email = email;
+            user.UserName = userName;
+            user.FullName = fullName;
+            user.UpdatedAt = DateTime.UtcNow;
+
+            await _userRepository.SaveChangesAsync();
 
             return new ProfileResponseDto
             {
