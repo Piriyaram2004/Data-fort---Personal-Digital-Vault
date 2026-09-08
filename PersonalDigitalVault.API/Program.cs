@@ -26,6 +26,17 @@ var builder = WebApplication.CreateBuilder(args);
 // Controllers
 builder.Services.AddControllers();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("FrontendPolicy", policy =>
+    {
+        policy
+            .WithOrigins("http://localhost:4200")
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
+
 // Database - Entity Framework Core + SQL Server
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(
@@ -184,6 +195,8 @@ if (app.Environment.IsDevelopment())
 
 // Redirect HTTP to HTTPS
 app.UseHttpsRedirection();
+
+app.UseCors("FrontendPolicy");
 
 // Authentication
 app.UseAuthentication();

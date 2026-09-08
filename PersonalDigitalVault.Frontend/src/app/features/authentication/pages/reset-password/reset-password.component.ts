@@ -1,6 +1,13 @@
 import { Component, inject } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import {
+  AbstractControl,
+  FormBuilder,
+  FormGroup,
+  ReactiveFormsModule,
+  ValidationErrors,
+  Validators
+} from '@angular/forms';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
@@ -14,35 +21,78 @@ export class ResetPasswordComponent {
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
 
   errorMessage = '';
   isLoading = false;
 
-  resetForm: FormGroup = this.fb.group({
-    email: ['', [Validators.required, Validators.email]],
-    token: ['', [Validators.required]],
-    newPassword: ['', [Validators.required, Validators.minLength(6)]]
-  });
+  email = '';
+  token = '';
+
+  showNewPassword = false;
+  showConfirmPassword = false;
+
+  resetForm: FormGroup = this.fb.group(
+    {
+      newPassword: ['', [Validators.required, Validators.minLength(6)]],
+      confirmPassword: ['', Validators.required]
+    },
+    {
+      validators: this.passwordMatchValidator
+    }
+  );
+
+  constructor() {
+    this.email = this.route.snapshot.queryParamMap.get('email') ?? '';
+    this.token = this.route.snapshot.queryParamMap.get('token') ?? '';
+
+    if (!this.email || !this.token) {
+      this.errorMessage = 'Invalid password reset link.';
+    }
+  }
+
+  passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
+    const newPassword = control.get('newPassword')?.value;
+    const confirmPassword = control.get('confirmPassword')?.value;
+
+    return newPassword === confirmPassword
+      ? null
+      : { passwordMismatch: true };
+  }
+
+  toggleNewPasswordVisibility(): void {
+    this.showNewPassword = !this.showNewPassword;
+  }
+
+  toggleConfirmPasswordVisibility(): void {
+    this.showConfirmPassword = !this.showConfirmPassword;
+  }
 
   onReset(): void {
-    if (this.resetForm.invalid) return;
+    if (this.resetForm.invalid || !this.email || !this.token) {
+      this.resetForm.markAllAsTouched();
+      return;
+    }
 
     this.isLoading = true;
     this.errorMessage = '';
 
-    const { email, token, newPassword } = this.resetForm.value;
-    this.authService.resetPassword(email, token, newPassword).subscribe({
-      next: (res) => {
+    const { newPassword, confirmPassword } = this.resetForm.value;
+
+    this.authService.resetPassword(
+      this.email,
+      this.token,
+      newPassword,
+      confirmPassword
+    ).subscribe({
+      next: () => {
         this.isLoading = false;
-        if (res.success) {
-          this.router.navigate(['/auth/login']);
-        } else {
-          this.errorMessage = res.message || 'Password reset failed.';
-        }
+        this.router.navigate(['/auth/login']);
       },
       error: (err) => {
         this.isLoading = false;
-        this.errorMessage = err.error?.message || 'Error resetting password.';
+        this.errorMessage =
+          err.error?.message || 'Error resetting password.';
       }
     });
   }
