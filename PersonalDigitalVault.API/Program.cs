@@ -26,6 +26,17 @@ var builder = WebApplication.CreateBuilder(args);
 // Controllers
 builder.Services.AddControllers();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("FrontendPolicy", policy =>
+    {
+        policy
+            .WithOrigins("http://localhost:4200")
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
+
 // Database - Entity Framework Core + SQL Server
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(
@@ -47,6 +58,9 @@ builder.Services.AddScoped<JwtTokenHelper>();
 builder.Services.AddScoped<IPasswordResetTokenRepository, PasswordResetTokenRepository>();
 builder.Services.AddScoped<PasswordResetTokenHelper>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<ResetPasswordRequestValidator>();
+builder.Services.AddScoped<ChangePasswordRequestValidator>();
+builder.Services.AddScoped<UpdateProfileRequestValidator>();
 
 // ==============================
 // Administration Module DI
@@ -66,10 +80,10 @@ builder.Services.AddScoped<IAdminAuditLogService, AdminAuditLogService>();
 // ==============================
 
 builder.Services.AddScoped<IShareLinkRepository, ShareLinkRepository>();
-builder.Services.AddScoped<IDocumentRepository, DocumentRepository>();
 
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IShareService, ShareService>();
+builder.Services.AddScoped<IShareAccessService, ShareAccessService>();
 
 builder.Services.AddScoped<ShareLinkValidator>();
 
@@ -79,8 +93,15 @@ builder.Services.AddScoped<ShareLinkValidator>();
 
 builder.Services.AddScoped<IFolderRepository, FolderRepository>();
 builder.Services.AddScoped<IFolderService, FolderService>();
-
-
+builder.Services.AddScoped<IDocumentService, DocumentService>();
+builder.Services.AddScoped<IDocumentRepository, DocumentRepository>();
+builder.Services.AddScoped<IFileStorageService, FileStorageService>();
+builder.Services.AddScoped<IEncryptionService, EncryptionService>();
+builder.Services.AddScoped<IHashService, HashService>();
+builder.Services.AddScoped<ICredentialRepository, CredentialRepository>();
+builder.Services.AddScoped<ICredentialService, CredentialService>();
+builder.Services.AddScoped<ISearchRepository, SearchRepository>();
+builder.Services.AddScoped<ISearchService, SearchService>();
 // ==============================
 // JWT Authentication
 // ==============================
@@ -174,6 +195,8 @@ if (app.Environment.IsDevelopment())
 
 // Redirect HTTP to HTTPS
 app.UseHttpsRedirection();
+
+app.UseCors("FrontendPolicy");
 
 // Authentication
 app.UseAuthentication();

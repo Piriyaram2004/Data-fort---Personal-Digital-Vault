@@ -2,6 +2,8 @@
 using PersonalDigitalVault.API.Authentication.DTOs;
 using PersonalDigitalVault.API.Authentication.Services;
 using PersonalDigitalVault.API.Authentication.Validators;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace PersonalDigitalVault.API.Authentication.Controllers
 {
@@ -13,17 +15,26 @@ namespace PersonalDigitalVault.API.Authentication.Controllers
         private readonly RegisterRequestValidator _registerValidator;
         private readonly LoginRequestValidator _loginValidator;
         private readonly ForgotPasswordRequestValidator _forgotPasswordValidator;
+        private readonly ResetPasswordRequestValidator _resetPasswordValidator;
+        private readonly ChangePasswordRequestValidator _changePasswordValidator;
+        private readonly UpdateProfileRequestValidator _updateProfileValidator;
 
         public AuthController(
             IAuthService authService,
             RegisterRequestValidator registerValidator,
             LoginRequestValidator loginValidator,
-            ForgotPasswordRequestValidator forgotPasswordValidator)
+            ForgotPasswordRequestValidator forgotPasswordValidator,
+            ResetPasswordRequestValidator resetPasswordValidator,
+            ChangePasswordRequestValidator changePasswordValidator,
+            UpdateProfileRequestValidator updateProfileValidator)
         {
             _authService = authService;
             _registerValidator = registerValidator;
             _loginValidator = loginValidator;
             _forgotPasswordValidator = forgotPasswordValidator;
+            _resetPasswordValidator = resetPasswordValidator;
+            _changePasswordValidator = changePasswordValidator;
+            _updateProfileValidator = updateProfileValidator;
         }
 
         [HttpPost("register")]
@@ -102,7 +113,7 @@ namespace PersonalDigitalVault.API.Authentication.Controllers
 
         [HttpPost("forgot-password")]
         public async Task<IActionResult> ForgotPassword(
-        ForgotPasswordRequestDto request)
+            ForgotPasswordRequestDto request)
         {
             var errors = _forgotPasswordValidator.Validate(request);
 
@@ -129,6 +140,176 @@ namespace PersonalDigitalVault.API.Authentication.Controllers
                 return StatusCode(500, new
                 {
                     message = "Password reset request could not be completed."
+                });
+            }
+        }
+
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword(
+            ResetPasswordRequestDto request)
+        {
+            var errors = _resetPasswordValidator.Validate(request);
+
+            if (errors.Count > 0)
+            {
+                return BadRequest(new
+                {
+                    message = "Validation failed.",
+                    errors
+                });
+            }
+
+            try
+            {
+                await _authService.ResetPasswordAsync(request);
+
+                return Ok(new
+                {
+                    message = "Password has been reset successfully."
+                });
+            }
+            catch (InvalidOperationException)
+            {
+                return BadRequest(new
+                {
+                    message = "Invalid or expired password reset request."
+                });
+            }
+        }
+
+        [Authorize]
+        [HttpPost("change-password")]
+        public async Task<IActionResult> ChangePassword(
+            ChangePasswordRequestDto request)
+        {
+            var errors = _changePasswordValidator.Validate(request);
+
+            if (errors.Count > 0)
+            {
+                return BadRequest(new
+                {
+                    message = "Validation failed.",
+                    errors
+                });
+            }
+
+            var userIdClaim = User.FindFirstValue(
+                ClaimTypes.NameIdentifier);
+
+            if (!int.TryParse(userIdClaim, out var userId))
+            {
+                return Unauthorized(new
+                {
+                    message = "Invalid authentication token."
+                });
+            }
+
+            try
+            {
+                await _authService.ChangePasswordAsync(
+                    userId,
+                    request);
+
+                return Ok(new
+                {
+                    message = "Password changed successfully."
+                });
+            }
+            catch (InvalidOperationException)
+            {
+                return BadRequest(new
+                {
+                    message = "Current password is incorrect."
+                });
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Unauthorized(new
+                {
+                    message = "User account is not available."
+                });
+            }
+        }
+
+        [Authorize]
+        [HttpGet("profile")]
+        public async Task<IActionResult> GetProfile()
+        {
+            var userIdClaim = User.FindFirstValue(
+                ClaimTypes.NameIdentifier);
+
+            if (!int.TryParse(userIdClaim, out var userId))
+            {
+                return Unauthorized(new
+                {
+                    message = "Invalid authentication token."
+                });
+            }
+
+            try
+            {
+                var profile = await _authService.GetProfileAsync(userId);
+
+                return Ok(profile);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Unauthorized(new
+                {
+                    message = "User account is not available."
+                });
+            }
+        }
+
+        [Authorize]
+        [HttpPut("profile")]
+        public async Task<IActionResult> UpdateProfile(
+            UpdateProfileRequestDto request)
+        {
+            var errors = _updateProfileValidator.Validate(request);
+
+            if (errors.Count > 0)
+            {
+                return BadRequest(new
+                {
+                    message = "Validation failed.",
+                    errors
+                });
+            }
+
+            var userIdClaim = User.FindFirstValue(
+                ClaimTypes.NameIdentifier);
+
+            if (!int.TryParse(userIdClaim, out var userId))
+            {
+                return Unauthorized(new
+                {
+                    message = "Invalid authentication token."
+                });
+            }
+
+            try
+            {
+                var profile = await _authService.UpdateProfileAsync(
+                    userId,
+                    request);
+
+                return Ok(profile);
+            }
+            catch (InvalidOperationException ex)
+                when (ex.Message == "Email is already registered." ||
+                      ex.Message == "User name is already taken.")
+            {
+                return Conflict(new
+                {
+                    message = ex.Message
+                });
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Unauthorized(new
+                {
+                    message = "User account is not available."
                 });
             }
         }
