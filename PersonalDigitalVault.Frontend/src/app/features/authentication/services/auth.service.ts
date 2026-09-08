@@ -2,12 +2,17 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
-import { ApiResponse } from '../../../core/models/api-response.model';
-import { LoginRequest } from '../models/login.model';
-import {RegisterRequest, RegisterResponse} from '../models/register.model';
-import { AuthResponse } from '../models/auth-response.model';
-import { UserProfile, UpdateProfileRequest } from '../models/profile.model';
 
+import { LoginRequest } from '../models/login.model';
+import {
+  RegisterRequest,
+  RegisterResponse
+} from '../models/register.model';
+import { AuthResponse } from '../models/auth-response.model';
+import {
+  UserProfile,
+  UpdateProfileRequest
+} from '../models/profile.model';
 
 @Injectable({
   providedIn: 'root'
@@ -18,7 +23,10 @@ export class AuthService {
 
   // Endpoint: POST /api/auth/login
   login(credentials: LoginRequest): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.apiUrl}/login`, credentials);
+    return this.http.post<AuthResponse>(
+      `${this.apiUrl}/login`,
+      credentials
+    );
   }
 
   // Endpoint: POST /api/auth/register
@@ -30,54 +38,61 @@ export class AuthService {
   }
 
   // Endpoint: POST /api/auth/forgot-password
-forgotPassword(email: string): Observable<{ message: string }> {
-  return this.http.post<{ message: string }>(
-    `${this.apiUrl}/forgot-password`,
-    { email }
-  );
-}
+  forgotPassword(email: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(
+      `${this.apiUrl}/forgot-password`,
+      { email }
+    );
+  }
 
   // Endpoint: POST /api/auth/reset-password
-resetPassword(
-  email: string,
-  token: string,
-  newPassword: string,
-  confirmPassword: string
-): Observable<{ message: string }> {
-  return this.http.post<{ message: string }>(
-    `${this.apiUrl}/reset-password`,
-    {
-      email,
-      token,
-      newPassword,
-      confirmPassword
-    }
-  );
-}
+  resetPassword(
+    email: string,
+    token: string,
+    newPassword: string,
+    confirmPassword: string
+  ): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(
+      `${this.apiUrl}/reset-password`,
+      {
+        email,
+        token,
+        newPassword,
+        confirmPassword
+      }
+    );
+  }
 
   // Endpoint: POST /api/auth/change-password
-changePassword(
-  currentPassword: string,
-  newPassword: string,
-  confirmPassword: string
-): Observable<{ message: string }> {
-  return this.http.post<{ message: string }>(
-    `${this.apiUrl}/change-password`,
-    {
-      currentPassword,
-      newPassword,
-      confirmPassword
-    }
-  );
-}
+  changePassword(
+    currentPassword: string,
+    newPassword: string,
+    confirmPassword: string
+  ): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(
+      `${this.apiUrl}/change-password`,
+      {
+        currentPassword,
+        newPassword,
+        confirmPassword
+      }
+    );
+  }
 
   // Endpoint: GET /api/auth/profile
-  getProfile(): Observable<ApiResponse<UserProfile>> {
-    return this.http.get<ApiResponse<UserProfile>>(`${this.apiUrl}/profile`);
+  getProfile(): Observable<UserProfile> {
+    return this.http.get<UserProfile>(
+      `${this.apiUrl}/profile`
+    );
   }
 
   // Endpoint: PUT /api/auth/profile
-  updateProfile(data: UpdateProfileRequest): Observable<ApiResponse<UserProfile>> {
-    return this.http.put<ApiResponse<UserProfile>>(`${this.apiUrl}/profile`, data);
+  updateProfile(
+    data: UpdateProfileRequest
+  ): Observable<UserProfile> {
+    return this.http.put<UserProfile>(
+      `${this.apiUrl}/profile`,
+      data
+    );
   }
 }
