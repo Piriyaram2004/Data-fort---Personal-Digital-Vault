@@ -25,13 +25,28 @@ export class TokenService {
   getUserRole(): string | null {
     const payload = this.getJwtPayload();
     if (!payload) return null;
-    return payload.role || payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] || null;
+
+    return payload.role ||
+      payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] ||
+      null;
   }
 
   getUserEmail(): string | null {
     const payload = this.getJwtPayload();
     if (!payload) return null;
-    return payload.email || payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'] || null;
+
+    return payload.email ||
+      payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'] ||
+      null;
+  }
+
+  getUserName(): string | null {
+    const payload = this.getJwtPayload();
+    if (!payload) return null;
+
+    return payload.name ||
+      payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] ||
+      null;
   }
 
   isAdmin(): boolean {
@@ -41,11 +56,20 @@ export class TokenService {
 
   private getJwtPayload(): any {
     const token = this.getToken();
+
     if (!token) return null;
+
     try {
       const parts = token.split('.');
+
       if (parts.length !== 3) return null;
-      const payload = atob(parts[1].replace(/-/g, '+').replace(/_/g, '/'));
+
+      const payload = atob(
+        parts[1]
+          .replace(/-/g, '+')
+          .replace(/_/g, '/')
+      );
+
       return JSON.parse(payload);
     } catch {
       return null;

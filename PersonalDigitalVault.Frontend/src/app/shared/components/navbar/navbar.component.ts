@@ -17,12 +17,32 @@ export class NavbarComponent {
     return this.tokenService.getUserEmail();
   }
 
+  get userName(): string | null {
+    return this.tokenService.getUserName();
+  }
+
   get userRole(): string | null {
     return this.tokenService.getUserRole();
   }
 
   get isAdmin(): boolean {
     return this.tokenService.isAdmin();
+  }
+
+  get displayUserName(): string {
+    const name = this.userName;
+
+    if (!name) return 'User';
+
+    return name.charAt(0).toUpperCase() + name.slice(1);
+  }
+
+  get userInitials(): string {
+    const name = this.userName;
+
+    if (!name) return 'U';
+
+    return name.substring(0, 2).toUpperCase();
   }
 
   logout(): void {
