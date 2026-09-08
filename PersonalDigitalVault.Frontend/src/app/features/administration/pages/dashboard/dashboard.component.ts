@@ -1,39 +1,39 @@
 import { Component, OnInit, inject } from '@angular/core';
+
 import { AdminDashboardService } from '../../services/admin-dashboard.service';
-import { DashboardStats } from '../../models/dashboard.model';
-import { StatCardComponent } from '../../components/stat-card/stat-card.component';
-import { FileSizePipe } from '../../../../shared/pipes/file-size.pipe';
-import { LoadingComponent } from '../../../../shared/components/loading/loading.component';
+import { DashboardModel } from '../../models/dashboard.model';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [StatCardComponent, FileSizePipe, LoadingComponent],
+  imports: [],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css'
 })
 export class DashboardComponent implements OnInit {
-  private adminDashboardService = inject(AdminDashboardService);
+  private readonly adminDashboardService = inject(AdminDashboardService);
 
-  stats: DashboardStats | null = null;
+  dashboard: DashboardModel | null = null;
   isLoading = true;
+  errorMessage = '';
 
   ngOnInit(): void {
-    this.loadStats();
+    this.loadDashboard();
   }
 
-  loadStats(): void {
+  loadDashboard(): void {
     this.isLoading = true;
-    this.adminDashboardService.getDashboardStats().subscribe({
-      next: (res) => {
+    this.errorMessage = '';
+
+    this.adminDashboardService.getDashboard().subscribe({
+      next: (data: DashboardModel) => {
+        this.dashboard = data;
         this.isLoading = false;
-        if (res.success && res.data) {
-          this.stats = res.data;
-        }
       },
       error: () => {
+        this.dashboard = null;
         this.isLoading = false;
-        this.stats = null;
+        this.errorMessage = 'Unable to load dashboard information.';
       }
     });
   }

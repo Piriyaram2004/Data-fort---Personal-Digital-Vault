@@ -1,29 +1,31 @@
-import { Injectable, inject } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+
 import { environment } from '../../../../environments/environment';
-import { ApiResponse } from '../../../core/models/api-response.model';
-import { AdminUser, UpdateUserRoleRequest } from '../models/admin-user.model';
+import {
+  AdminUser,
+  UpdateUserStatusRequest
+} from '../models/admin-user.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AdminUserService {
-  private http = inject(HttpClient);
-  private apiUrl = `${environment.apiUrl}/admin/users`;
+  private readonly http = inject(HttpClient);
+  private readonly apiUrl = `${environment.apiUrl}/api/admin/users`;
 
-  // Endpoint: GET /api/admin/users
-  getUsers(): Observable<ApiResponse<AdminUser[]>> {
-    return this.http.get<ApiResponse<AdminUser[]>>(this.apiUrl);
+  getUsers(): Observable<AdminUser[]> {
+    return this.http.get<AdminUser[]>(this.apiUrl);
   }
 
-  // Endpoint: PUT /api/admin/users/:id
-  updateUser(id: string, data: UpdateUserRoleRequest): Observable<ApiResponse<AdminUser>> {
-    return this.http.put<ApiResponse<AdminUser>>(`${this.apiUrl}/${id}`, data);
-  }
-
-  // Endpoint: DELETE /api/admin/users/:id
-  deleteUser(id: string): Observable<ApiResponse<void>> {
-    return this.http.delete<ApiResponse<void>>(`${this.apiUrl}/${id}`);
+  updateUserStatus(
+    userId: number,
+    request: UpdateUserStatusRequest
+  ): Observable<{ message: string }> {
+    return this.http.put<{ message: string }>(
+      `${this.apiUrl}/${userId}/status`,
+      request
+    );
   }
 }
