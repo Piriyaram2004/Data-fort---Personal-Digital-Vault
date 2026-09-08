@@ -1,9 +1,10 @@
 export interface UserProfile {
-  id: string;
-  username: string;
+  userId: number;
   email: string;
+  userName: string;
+  fullName: string;
+  profileImageUrl: string | null;
   role: string;
-  createdAt: string;
 }
 
 export interface UpdateProfileRequest {
