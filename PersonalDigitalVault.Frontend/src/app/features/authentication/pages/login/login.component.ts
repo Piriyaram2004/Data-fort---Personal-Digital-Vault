@@ -1,6 +1,12 @@
-import { Component, inject } from '@angular/core';
+import {
+  Component,
+  inject,
+  ChangeDetectorRef
+} from '@angular/core';
+
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+
 import { AuthService } from '../../services/auth.service';
 import { TokenService } from '../../../../core/services/token.service';
 
@@ -15,6 +21,7 @@ export class LoginComponent {
   private authService = inject(AuthService);
   private tokenService = inject(TokenService);
   private router = inject(Router);
+  private cdr = inject(ChangeDetectorRef);
 
   email = '';
   password = '';
@@ -23,12 +30,13 @@ export class LoginComponent {
   showPassword = false;
 
   togglePasswordVisibility(): void {
-  this.showPassword = !this.showPassword;
-}
+    this.showPassword = !this.showPassword;
+  }
 
   onLogin(): void {
     if (!this.email || !this.password) {
       this.errorMessage = 'Please provide both email and password.';
+      this.cdr.detectChanges();
       return;
     }
 
@@ -47,12 +55,17 @@ export class LoginComponent {
           this.router.navigate(['/vault']);
         } else {
           this.errorMessage = 'Login failed.';
+          this.cdr.detectChanges();
         }
       },
+
       error: (err) => {
         this.isLoading = false;
+
         this.errorMessage =
           err.error?.message || 'Server error during login.';
+
+        this.cdr.detectChanges();
       }
     });
   }
