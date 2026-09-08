@@ -20,5 +20,10 @@ namespace PersonalDigitalVault.API.Repositories.Implementations
                 .OrderByDescending(log => log.CreatedAt)
                 .ToListAsync();
         }
+
+        public async Task AddAsync(AuditLog auditLog)
+        {
+            await _context.AuditLogs.AddAsync(auditLog);
+        }
     }
 }

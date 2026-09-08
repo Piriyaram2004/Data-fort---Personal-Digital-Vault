@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using PersonalDigitalVault.API.Administration.DTOs;
 using PersonalDigitalVault.API.Administration.Services;
 using PersonalDigitalVault.API.DTOs.Administration;
+using System.Security.Claims;
 
 namespace PersonalDigitalVault.API.Administration.Controllers
 {
@@ -23,6 +25,52 @@ namespace PersonalDigitalVault.API.Administration.Controllers
             var users = await _adminUserService.GetAllUsersAsync();
 
             return Ok(users);
+        }
+
+        [HttpPut("{id}/status")]
+        public async Task<IActionResult> UpdateUserStatus(
+            int id,
+            [FromBody] UpdateAdminUserStatusRequest request)
+        {
+            if (id <= 0)
+            {
+                return BadRequest(new
+                {
+                    message = "Invalid user id."
+                });
+            }
+
+            var adminUserIdValue =
+                User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (!int.TryParse(adminUserIdValue, out var adminUserId))
+            {
+                return Unauthorized();
+            }
+
+            var ipAddress =
+                HttpContext.Connection.RemoteIpAddress?.ToString();
+
+            var updated = await _adminUserService.UpdateUserStatusAsync(
+                id,
+                request.IsActive,
+                adminUserId,
+                ipAddress);
+
+            if (!updated)
+            {
+                return NotFound(new
+                {
+                    message = "User not found."
+                });
+            }
+
+            return Ok(new
+            {
+                message = request.IsActive
+                    ? "User account activated successfully."
+                    : "User account deactivated successfully."
+            });
         }
     }
 }
