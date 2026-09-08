@@ -1,23 +1,20 @@
 export interface ShareLink {
-  id: string;
-  documentId: string;
-  documentName: string;
+  shareLinkId: number;
+  documentId: number;
   shareToken: string;
-  expiryDate: string;
+  expiresAt: string | null;
   isRevoked: boolean;
-  accessCount: number;
   createdAt: string;
 }
 
 export interface CreateShareLinkRequest {
-  documentId: string;
-  expiryDays: number;
+  documentId: number;
+  expiresAt: string | null;
 }
 
 export interface PublicFileDetails {
-  documentName: string;
-  fileSizeBytes: number;
+  fileName: string;
   fileType: string;
-  expiryDate: string;
-  shareToken: string;
+  fileSize: number;
+  expiresAt: string | null;
 }

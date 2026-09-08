@@ -1,9 +1,21 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  FormBuilder,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators
+} from '@angular/forms';
+
 import { PublicSharingService } from '../../services/public-sharing.service';
 import { DocumentService } from '../../../secure-vault/services/document.service';
-import { ShareLink } from '../../models/share-link.model';
+
+import {
+  ShareLink,
+  CreateShareLinkRequest
+} from '../../models/share-link.model';
+
 import { DocumentItem } from '../../../secure-vault/models/document.model';
+
 import { ShareLinkCardComponent } from '../../components/share-link-card/share-link-card.component';
 import { LoadingComponent } from '../../../../shared/components/loading/loading.component';
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
@@ -23,21 +35,22 @@ import { ConfirmDialogComponent } from '../../../../shared/components/confirm-di
   styleUrl: './share-link.component.css'
 })
 export class ShareLinkComponent implements OnInit {
-  private fb = inject(FormBuilder);
-  private sharingService = inject(PublicSharingService);
-  private documentService = inject(DocumentService);
+  private readonly fb = inject(FormBuilder);
+  private readonly sharingService = inject(PublicSharingService);
+  private readonly documentService = inject(DocumentService);
 
   links: ShareLink[] = [];
   documents: DocumentItem[] = [];
+
   isLoading = true;
   showCreateModal = false;
 
   showRevokeDialog = false;
-  selectedLinkId: string | null = null;
+  selectedLinkId: number | null = null;
 
   createForm: FormGroup = this.fb.group({
     documentId: ['', [Validators.required]],
-    expiryDays: [7, [Validators.required, Validators.min(1)]]
+    expiresAt: ['', [Validators.required]]
   });
 
   ngOnInit(): void {
@@ -47,16 +60,15 @@ export class ShareLinkComponent implements OnInit {
 
   loadLinks(): void {
     this.isLoading = true;
+
     this.sharingService.getShareLinks().subscribe({
-      next: (res) => {
+      next: (links) => {
+        this.links = links;
         this.isLoading = false;
-        if (res.success && res.data) {
-          this.links = res.data;
-        }
       },
       error: () => {
-        this.isLoading = false;
         this.links = [];
+        this.isLoading = false;
       }
     });
   }
@@ -72,34 +84,52 @@ export class ShareLinkComponent implements OnInit {
   }
 
   onCreateShareLink(): void {
-    if (this.createForm.invalid) return;
+    if (this.createForm.invalid) {
+      this.createForm.markAllAsTouched();
+      return;
+    }
 
-    this.sharingService.createShareLink(this.createForm.value).subscribe({
-      next: (res) => {
-        if (res.success) {
-          this.showCreateModal = false;
-          this.createForm.reset({ expiryDays: 7 });
-          this.loadLinks();
-        }
+    const request: CreateShareLinkRequest = {
+      documentId: Number(this.createForm.value.documentId),
+      expiresAt: this.createForm.value.expiresAt
+    };
+
+    this.sharingService.createShareLink(request).subscribe({
+      next: () => {
+        this.showCreateModal = false;
+
+        this.createForm.reset({
+          documentId: '',
+          expiresAt: ''
+        });
+
+        this.loadLinks();
       }
     });
   }
 
-  onPromptRevoke(id: string): void {
+  onPromptRevoke(id: number): void {
     this.selectedLinkId = id;
     this.showRevokeDialog = true;
   }
 
   confirmRevoke(): void {
-    if (!this.selectedLinkId) return;
-    this.sharingService.revokeShareLink(this.selectedLinkId).subscribe({
-      next: () => {
-        this.showRevokeDialog = false;
-        this.loadLinks();
-      },
-      error: () => {
-        this.showRevokeDialog = false;
-      }
-    });
+    if (this.selectedLinkId === null) {
+      return;
+    }
+
+    this.sharingService
+      .revokeShareLink(this.selectedLinkId)
+      .subscribe({
+        next: () => {
+          this.showRevokeDialog = false;
+          this.selectedLinkId = null;
+          this.loadLinks();
+        },
+        error: () => {
+          this.showRevokeDialog = false;
+          this.selectedLinkId = null;
+        }
+      });
   }
 }
