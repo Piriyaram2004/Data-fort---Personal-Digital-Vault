@@ -1,65 +1,241 @@
 <div class="max-w-2xl mx-auto">
+
   @if (isLoading) {
-    <app-loading message="Loading document details..." />
+
+    <div class="flex flex-col items-center justify-center py-20">
+      <div class="w-10 h-10 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+
+      <p class="mt-4 text-sm text-slate-500">
+        Loading document details...
+      </p>
+    </div>
+
+  } @else if (errorMessage) {
+
+    <div class="bg-red-50 border border-red-200 rounded-xl p-5 text-center">
+
+      <p class="text-sm text-red-700">
+        {{ errorMessage }}
+      </p>
+
+      <a
+        routerLink="/vault/documents"
+        class="inline-block mt-4 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg"
+      >
+        Back to Documents
+      </a>
+
+    </div>
+
   } @else if (document) {
+
     <div class="bg-white p-6 rounded-xl shadow border border-slate-200 space-y-6">
+
+      <!-- Header -->
       <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+
         <div>
-          <h1 class="text-xl font-bold text-slate-800">{{ document.fileName }}</h1>
-          <p class="text-xs text-slate-500 mt-1">Document metadata & integrity status</p>
+
+          <h1 class="text-xl font-bold text-slate-800">
+            {{ document.originalFileName }}
+          </h1>
+
+          <p class="text-xs text-slate-500 mt-1">
+            Document metadata & integrity status
+          </p>
+
         </div>
-        <a routerLink="/vault/documents" class="text-xs font-medium text-slate-500 hover:text-slate-800">Back to Documents</a>
+
+        <a
+          routerLink="/vault/documents"
+          class="text-xs font-medium text-slate-500 hover:text-slate-800"
+        >
+          Back to Documents
+        </a>
+
       </div>
 
+
+      <!-- Document Information -->
       <div class="grid grid-cols-2 gap-4 text-sm">
+
         <div>
-          <span class="block text-xs font-semibold text-slate-500">File Type</span>
-          <span class="font-medium text-slate-800">{{ document.fileType || 'Unknown' }}</span>
+          <span class="block text-xs font-semibold text-slate-500">
+            Document ID
+          </span>
+
+          <span class="font-medium text-slate-800">
+            {{ document.documentId }}
+          </span>
         </div>
+
+
         <div>
-          <span class="block text-xs font-semibold text-slate-500">File Size</span>
-          <span class="font-medium text-slate-800">{{ document.fileSizeBytes | fileSize }}</span>
+          <span class="block text-xs font-semibold text-slate-500">
+            File Type
+          </span>
+
+          <span class="font-medium text-slate-800">
+            {{ document.fileType || 'Unknown' }}
+          </span>
         </div>
+
+
         <div>
-          <span class="block text-xs font-semibold text-slate-500">Uploaded On</span>
-          <span class="font-medium text-slate-800">{{ document.uploadedAt | date:'medium' }}</span>
+          <span class="block text-xs font-semibold text-slate-500">
+            File Size
+          </span>
+
+          <span class="font-medium text-slate-800">
+            {{ document.fileSize | fileSize }}
+          </span>
         </div>
+
+
         <div>
-          <span class="block text-xs font-semibold text-slate-500">Folder</span>
-          <span class="font-medium text-slate-800">{{ document.folderName || 'Root Vault' }}</span>
+          <span class="block text-xs font-semibold text-slate-500">
+            Folder
+          </span>
+
+          <span class="font-medium text-slate-800">
+            {{ document.folderId ?? 'Root Vault' }}
+          </span>
         </div>
+
+
+        <div>
+          <span class="block text-xs font-semibold text-slate-500">
+            Created On
+          </span>
+
+          <span class="font-medium text-slate-800">
+            {{ document.createdAt | date:'medium' }}
+          </span>
+        </div>
+
+
+        <div>
+          <span class="block text-xs font-semibold text-slate-500">
+            Encryption
+          </span>
+
+          @if (document.isEncrypted) {
+
+            <span class="font-medium text-green-600">
+              Encrypted
+            </span>
+
+          } @else {
+
+            <span class="font-medium text-slate-500">
+              Not Encrypted
+            </span>
+
+          }
+
+        </div>
+
       </div>
 
+
+      <!-- SHA-256 -->
       <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
+
         <div class="flex items-center justify-between mb-2">
-          <span class="text-xs font-semibold text-slate-700">SHA-256 Checksum Integrity</span>
-          <app-integrity-badge [isVerified]="document.integrityVerified" />
+
+          <span class="text-xs font-semibold text-slate-700">
+            SHA-256 Checksum
+          </span>
+
+          @if (integrityVerified === true) {
+
+            <app-integrity-badge [isVerified]="true" />
+
+          } @else if (integrityVerified === false) {
+
+            <span class="text-xs font-semibold text-red-600">
+              Integrity Failed
+            </span>
+
+          } @else {
+
+            <span class="text-xs text-slate-500">
+              Not verified
+            </span>
+
+          }
+
         </div>
-        <p class="text-xs font-mono text-slate-600 break-all bg-white p-2 rounded border border-slate-200">
+
+
+        <p
+          class="text-xs font-mono text-slate-600 break-all bg-white p-2 rounded border border-slate-200"
+        >
           {{ document.sha256Hash || 'No checksum available' }}
         </p>
+
+
+        @if (integrityMessage) {
+
+          <p class="text-xs mt-2 text-slate-600">
+            {{ integrityMessage }}
+          </p>
+
+        }
+
       </div>
 
+
+      <!-- Actions -->
       <div class="flex items-center justify-between pt-4 border-t border-slate-100">
-        <button (click)="onDownload()" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs rounded-lg transition flex items-center space-x-2">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-          <span>Download File</span>
+
+        <button
+          type="button"
+          (click)="onDownload()"
+          class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs rounded-lg transition"
+        >
+          Download File
         </button>
 
-        <button (click)="showDeleteDialog = true" class="px-4 py-2.5 bg-red-50 hover:bg-red-100 text-red-700 font-medium text-xs rounded-lg transition">
+
+        <button
+          type="button"
+          (click)="onPromptDelete()"
+          class="px-4 py-2.5 bg-red-50 hover:bg-red-100 text-red-700 font-medium text-xs rounded-lg transition"
+        >
           Delete File
         </button>
+
       </div>
+
     </div>
+
   } @else {
-    <div class="text-center py-12 text-slate-500">Document not found.</div>
+
+    <div class="text-center py-12 text-slate-500">
+
+      <p class="text-sm">
+        Document not found.
+      </p>
+
+      <a
+        routerLink="/vault/documents"
+        class="inline-block mt-4 text-xs text-blue-600 hover:text-blue-800"
+      >
+        Back to Documents
+      </a>
+
+    </div>
+
   }
+
 
   <app-confirm-dialog
     [isOpen]="showDeleteDialog"
     title="Delete File"
     message="Are you sure you want to permanently delete this document?"
     (confirm)="confirmDelete()"
-    (cancel)="showDeleteDialog = false"
+    (cancel)="cancelDelete()"
   />
+
 </div>

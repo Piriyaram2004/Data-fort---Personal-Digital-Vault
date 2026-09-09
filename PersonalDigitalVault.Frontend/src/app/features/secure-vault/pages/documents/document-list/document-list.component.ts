@@ -1,9 +1,10 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
+
 import { DocumentService } from '../../../services/document.service';
 import { DocumentItem } from '../../../models/document.model';
+
 import { DocumentCardComponent } from '../../../components/document-card/document-card.component';
-import { LoadingComponent } from '../../../../../shared/components/loading/loading.component';
 import { EmptyStateComponent } from '../../../../../shared/components/empty-state/empty-state.component';
 import { ConfirmDialogComponent } from '../../../../../shared/components/confirm-dialog/confirm-dialog.component';
 
@@ -13,7 +14,6 @@ import { ConfirmDialogComponent } from '../../../../../shared/components/confirm
   imports: [
     RouterLink,
     DocumentCardComponent,
-    LoadingComponent,
     EmptyStateComponent,
     ConfirmDialogComponent
   ],
@@ -22,65 +22,89 @@ import { ConfirmDialogComponent } from '../../../../../shared/components/confirm
 })
 export class DocumentListComponent implements OnInit {
   private documentService = inject(DocumentService);
-  private route = inject(ActivatedRoute);
 
   documents: DocumentItem[] = [];
-  isLoading = true;
-  folderIdFilter: string | null = null;
+
+  isLoading = false;
+  errorMessage = '';
 
   showDeleteDialog = false;
-  selectedDocumentId: string | null = null;
+  selectedDocumentId: number | null = null;
 
   ngOnInit(): void {
-    this.route.queryParams.subscribe((params) => {
-      this.folderIdFilter = params['folderId'] || null;
-      this.loadDocuments();
-    });
+    this.loadDocuments();
   }
 
   loadDocuments(): void {
     this.isLoading = true;
-    this.documentService.getDocuments(this.folderIdFilter || undefined).subscribe({
-      next: (res) => {
+    this.errorMessage = '';
+
+    this.documentService.getDocuments().subscribe({
+      next: (documents: DocumentItem[]) => {
+        this.documents = documents;
         this.isLoading = false;
-        if (res.success && res.data) {
-          this.documents = res.data;
-        }
       },
-      error: () => {
-        this.isLoading = false;
+
+      error: (error) => {
+        console.error('Failed to load documents:', error);
+
         this.documents = [];
+        this.isLoading = false;
+        this.errorMessage = 'Unable to load documents.';
       }
     });
   }
 
-  onDownloadDocument(doc: DocumentItem): void {
-    this.documentService.downloadDocument(doc.id).subscribe({
-      next: (blob) => {
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = doc.fileName;
-        a.click();
-        window.URL.revokeObjectURL(url);
-      }
-    });
+  onDownloadDocument(documentItem: DocumentItem): void {
+    this.documentService
+      .downloadDocument(documentItem.documentId)
+      .subscribe({
+        next: (blob) => {
+          const url = window.URL.createObjectURL(blob);
+          const link = window.document.createElement('a');
+
+          link.href = url;
+          link.download = documentItem.originalFileName;
+
+          link.click();
+
+          window.URL.revokeObjectURL(url);
+        },
+
+        error: (error) => {
+          console.error('Failed to download document:', error);
+          this.errorMessage = 'Unable to download document.';
+        }
+      });
   }
 
-  onPromptDeleteDocument(id: string): void {
-    this.selectedDocumentId = id;
+  onPromptDeleteDocument(documentId: number): void {
+    this.selectedDocumentId = documentId;
     this.showDeleteDialog = true;
   }
 
   confirmDelete(): void {
-    if (!this.selectedDocumentId) return;
-    this.documentService.deleteDocument(this.selectedDocumentId).subscribe({
+    if (this.selectedDocumentId === null) {
+      return;
+    }
+
+    const documentId = this.selectedDocumentId;
+
+    this.documentService.deleteDocument(documentId).subscribe({
       next: () => {
         this.showDeleteDialog = false;
+        this.selectedDocumentId = null;
+
         this.loadDocuments();
       },
-      error: () => {
+
+      error: (error) => {
+        console.error('Failed to delete document:', error);
+
         this.showDeleteDialog = false;
+        this.selectedDocumentId = null;
+
+        this.errorMessage = 'Unable to delete document.';
       }
     });
   }

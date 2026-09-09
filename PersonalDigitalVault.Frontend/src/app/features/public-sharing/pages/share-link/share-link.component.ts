@@ -73,16 +73,17 @@ export class ShareLinkComponent implements OnInit {
     });
   }
 
-  loadDocuments(): void {
-    this.documentService.getDocuments().subscribe({
-      next: (res) => {
-        if (res.success && res.data) {
-          this.documents = res.data;
-        }
-      }
-    });
-  }
-
+loadDocuments(): void {
+  this.documentService.getDocuments().subscribe({
+    next: (documents: DocumentItem[]) => {
+      this.documents = documents;
+    },
+    error: (error) => {
+      console.error('Failed to load documents:', error);
+      this.documents = [];
+    }
+  });
+}
   onCreateShareLink(): void {
     if (this.createForm.invalid) {
       this.createForm.markAllAsTouched();

@@ -1,8 +1,8 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+
 import { environment } from '../../../../environments/environment';
-import { ApiResponse } from '../../../core/models/api-response.model';
 import { DocumentItem } from '../models/document.model';
 
 @Injectable({
@@ -12,29 +12,35 @@ export class DocumentService {
   private http = inject(HttpClient);
   private apiUrl = `${environment.apiUrl}/documents`;
 
-  // Endpoint: GET /api/documents
-  getDocuments(folderId?: string): Observable<ApiResponse<DocumentItem[]>> {
-    const url = folderId ? `${this.apiUrl}?folderId=${folderId}` : this.apiUrl;
-    return this.http.get<ApiResponse<DocumentItem[]>>(url);
+  // API #5
+  // GET /api/documents
+  getDocuments(): Observable<DocumentItem[]> {
+    return this.http.get<DocumentItem[]>(this.apiUrl);
   }
 
-  // Endpoint: GET /api/documents/:id
-  getDocumentById(id: string): Observable<ApiResponse<DocumentItem>> {
-    return this.http.get<ApiResponse<DocumentItem>>(`${this.apiUrl}/${id}`);
+  // API #9
+  // POST /api/documents/upload
+  uploadDocument(formData: FormData): Observable<DocumentItem> {
+    return this.http.post<DocumentItem>(
+      `${this.apiUrl}/upload`,
+      formData
+    );
   }
 
-  // Endpoint: POST /api/documents/upload
-  uploadDocument(formData: FormData): Observable<ApiResponse<DocumentItem>> {
-    return this.http.post<ApiResponse<DocumentItem>>(`${this.apiUrl}/upload`, formData);
+  // API #10
+  // GET /api/documents/{id}/download
+  downloadDocument(id: number): Observable<Blob> {
+    return this.http.get(
+      `${this.apiUrl}/${id}/download`,
+      { responseType: 'blob' }
+    );
   }
 
-  // Endpoint: GET /api/documents/:id/download
-  downloadDocument(id: string): Observable<Blob> {
-    return this.http.get(`${this.apiUrl}/${id}/download`, { responseType: 'blob' });
-  }
-
-  // Endpoint: DELETE /api/documents/:id
-  deleteDocument(id: string): Observable<ApiResponse<void>> {
-    return this.http.delete<ApiResponse<void>>(`${this.apiUrl}/${id}`);
+  // API #8
+  // DELETE /api/documents/{id}
+  deleteDocument(id: number): Observable<void> {
+    return this.http.delete<void>(
+      `${this.apiUrl}/${id}`
+    );
   }
 }

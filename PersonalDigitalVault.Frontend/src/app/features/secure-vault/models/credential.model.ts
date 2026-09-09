@@ -1,15 +1,27 @@
 export interface CredentialItem {
-  id: string;
-  serviceName: string;
-  username: string;
-  secretValue?: string; // Decrypted value returned only when explicitly requested from backend
-  notes?: string;
+  credentialId: number;
+  userId: number;
+  folderId: number | null;
+  title: string;
+  userName: string;
+  password: string;
+  notes: string | null;
   createdAt: string;
+  updatedAt: string;
 }
 
 export interface CreateCredentialRequest {
-  serviceName: string;
-  username: string;
-  secretValue: string;
-  notes?: string;
+  folderId: number | null;
+  title: string;
+  userName: string;
+  password: string;
+  notes: string | null;
+}
+
+export interface UpdateCredentialRequest {
+  folderId: number | null;
+  title: string;
+  userName: string;
+  password: string;
+  notes: string | null;
 }

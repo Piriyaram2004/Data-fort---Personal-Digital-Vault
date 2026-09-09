@@ -1,9 +1,10 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
+
 import { CredentialService } from '../../../services/credential.service';
 import { CredentialItem } from '../../../models/credential.model';
+
 import { CredentialCardComponent } from '../../../components/credential-card/credential-card.component';
-import { LoadingComponent } from '../../../../../shared/components/loading/loading.component';
 import { EmptyStateComponent } from '../../../../../shared/components/empty-state/empty-state.component';
 import { ConfirmDialogComponent } from '../../../../../shared/components/confirm-dialog/confirm-dialog.component';
 
@@ -13,7 +14,6 @@ import { ConfirmDialogComponent } from '../../../../../shared/components/confirm
   imports: [
     RouterLink,
     CredentialCardComponent,
-    LoadingComponent,
     EmptyStateComponent,
     ConfirmDialogComponent
   ],
@@ -25,10 +25,12 @@ export class CredentialListComponent implements OnInit {
   private router = inject(Router);
 
   credentials: CredentialItem[] = [];
+
   isLoading = true;
+  errorMessage = '';
 
   showDeleteDialog = false;
-  selectedCredentialId: string | null = null;
+  selectedCredentialId: number | null = null;
 
   ngOnInit(): void {
     this.loadCredentials();
@@ -36,38 +38,56 @@ export class CredentialListComponent implements OnInit {
 
   loadCredentials(): void {
     this.isLoading = true;
+    this.errorMessage = '';
+
     this.credentialService.getCredentials().subscribe({
-      next: (res) => {
+      next: (credentials: CredentialItem[]) => {
+        this.credentials = credentials;
         this.isLoading = false;
-        if (res.success && res.data) {
-          this.credentials = res.data;
-        }
       },
-      error: () => {
-        this.isLoading = false;
+
+      error: (error) => {
+        console.error('Failed to load credentials:', error);
+
         this.credentials = [];
+        this.isLoading = false;
+        this.errorMessage = 'Unable to load credentials.';
       }
     });
   }
 
   onEditCredential(credential: CredentialItem): void {
-    this.router.navigate(['/vault/credentials/edit', credential.id]);
+    this.router.navigate([
+      '/vault/credentials/edit',
+      credential.credentialId
+    ]);
   }
 
-  onPromptDeleteCredential(id: string): void {
+  onPromptDeleteCredential(id: number): void {
     this.selectedCredentialId = id;
     this.showDeleteDialog = true;
   }
 
   confirmDelete(): void {
-    if (!this.selectedCredentialId) return;
-    this.credentialService.deleteCredential(this.selectedCredentialId).subscribe({
+    if (this.selectedCredentialId === null) {
+      return;
+    }
+
+    const credentialId = this.selectedCredentialId;
+
+    this.credentialService.deleteCredential(credentialId).subscribe({
       next: () => {
         this.showDeleteDialog = false;
+        this.selectedCredentialId = null;
         this.loadCredentials();
       },
-      error: () => {
+
+      error: (error) => {
+        console.error('Failed to delete credential:', error);
+
         this.showDeleteDialog = false;
+        this.selectedCredentialId = null;
+        this.errorMessage = 'Unable to delete credential.';
       }
     });
   }
