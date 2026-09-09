@@ -9,6 +9,6 @@ export interface AdminUser {
   roleName: string;
 }
 
-export interface UpdateUserStatusRequest {
+export interface UpdateAdminUserStatusRequest {
   isActive: boolean;
 }

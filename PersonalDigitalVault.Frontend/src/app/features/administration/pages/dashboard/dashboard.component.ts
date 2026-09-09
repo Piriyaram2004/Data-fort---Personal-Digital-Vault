@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 
 import { AdminDashboardService } from '../../services/admin-dashboard.service';
 import { DashboardModel } from '../../models/dashboard.model';
@@ -12,6 +12,7 @@ import { DashboardModel } from '../../models/dashboard.model';
 })
 export class DashboardComponent implements OnInit {
   private readonly adminDashboardService = inject(AdminDashboardService);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   dashboard: DashboardModel | null = null;
   isLoading = true;
@@ -29,11 +30,13 @@ export class DashboardComponent implements OnInit {
       next: (data: DashboardModel) => {
         this.dashboard = data;
         this.isLoading = false;
+        this.cdr.detectChanges();
       },
       error: () => {
         this.dashboard = null;
         this.isLoading = false;
         this.errorMessage = 'Unable to load dashboard information.';
+        this.cdr.detectChanges();
       }
     });
   }

@@ -1,9 +1,9 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 
 import { AdminUserService } from '../../services/admin-user.service';
 import {
   AdminUser,
-  UpdateUserStatusRequest
+  UpdateAdminUserStatusRequest
 } from '../../models/admin-user.model';
 
 @Component({
@@ -15,6 +15,7 @@ import {
 })
 export class UsersComponent implements OnInit {
   private readonly adminUserService = inject(AdminUserService);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   users: AdminUser[] = [];
   isLoading = true;
@@ -34,17 +35,19 @@ export class UsersComponent implements OnInit {
       next: (users: AdminUser[]) => {
         this.users = users;
         this.isLoading = false;
+        this.cdr.detectChanges();
       },
       error: () => {
         this.users = [];
         this.isLoading = false;
         this.errorMessage = 'Unable to load users.';
+        this.cdr.detectChanges();
       }
     });
   }
 
   onToggleUserStatus(user: AdminUser): void {
-    const request: UpdateUserStatusRequest = {
+    const request: UpdateAdminUserStatusRequest = {
       isActive: !user.isActive
     };
 
@@ -55,14 +58,16 @@ export class UsersComponent implements OnInit {
     this.adminUserService
       .updateUserStatus(user.userId, request)
       .subscribe({
-        next: (response: { message: string }) => {
+        next: () => {
           user.isActive = request.isActive;
-          this.successMessage = response.message;
+          this.successMessage = 'User status updated successfully.';
           this.updatingUserId = null;
+          this.cdr.detectChanges();
         },
         error: () => {
           this.errorMessage = 'Unable to update user status.';
           this.updatingUserId = null;
+          this.cdr.detectChanges();
         }
       });
   }

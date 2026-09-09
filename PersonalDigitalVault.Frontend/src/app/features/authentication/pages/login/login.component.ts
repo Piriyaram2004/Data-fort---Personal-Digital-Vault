@@ -51,9 +51,13 @@ export class LoginComponent {
         this.isLoading = false;
 
         if (res.token) {
-          this.tokenService.setToken(res.token);
-          this.router.navigate(['/vault']);
-        } else {
+  this.tokenService.setToken(res.token);
+  if (this.tokenService.isAdmin()) {
+    this.router.navigate(['/admin/dashboard']);
+    } else {
+    this.router.navigate(['/vault']);
+    }
+    } else {
           this.errorMessage = 'Login failed.';
           this.cdr.detectChanges();
         }

@@ -10,7 +10,7 @@ import { DashboardModel } from '../models/dashboard.model';
 })
 export class AdminDashboardService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = `${environment.apiUrl}/api/admin/dashboard`;
+  private readonly apiUrl = `${environment.apiUrl}/admin/dashboard`;
 
   getDashboard(): Observable<DashboardModel> {
     return this.http.get<DashboardModel>(this.apiUrl);
