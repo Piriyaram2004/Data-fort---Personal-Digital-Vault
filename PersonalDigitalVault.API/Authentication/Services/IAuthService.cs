@@ -11,5 +11,6 @@ namespace PersonalDigitalVault.API.Authentication.Services
         Task ChangePasswordAsync(int userId,ChangePasswordRequestDto request);
         Task<ProfileResponseDto> GetProfileAsync(int userId);
         Task<ProfileResponseDto> UpdateProfileAsync(int userId,UpdateProfileRequestDto request);
+        Task VerifyEmailAsync(string token);
     }
 }

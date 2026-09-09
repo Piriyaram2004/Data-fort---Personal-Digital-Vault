@@ -313,5 +313,35 @@ namespace PersonalDigitalVault.API.Authentication.Controllers
                 });
             }
         }
+
+        [HttpGet("verify-email")]
+        public async Task<IActionResult> VerifyEmail(
+        [FromQuery] string token)
+        {
+            if (string.IsNullOrWhiteSpace(token))
+            {
+                return BadRequest(new
+                {
+                    message = "Verification token is required."
+                });
+            }
+
+            try
+            {
+                await _authService.VerifyEmailAsync(token);
+
+                return Ok(new
+                {
+                    message = "Email verified successfully."
+                });
+            }
+            catch (InvalidOperationException)
+            {
+                return BadRequest(new
+                {
+                    message = "Invalid or expired verification link."
+                });
+            }
+        }
     }
 }

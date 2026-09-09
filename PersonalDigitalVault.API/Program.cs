@@ -58,6 +58,8 @@ builder.Services.AddScoped<JwtTokenHelper>();
 builder.Services.AddScoped<IPasswordResetTokenRepository, PasswordResetTokenRepository>();
 builder.Services.AddScoped<PasswordResetTokenHelper>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IEmailVerificationTokenRepository, EmailVerificationTokenRepository>();
+builder.Services.AddScoped<EmailVerificationTokenHelper>();
 builder.Services.AddScoped<ResetPasswordRequestValidator>();
 builder.Services.AddScoped<ChangePasswordRequestValidator>();
 builder.Services.AddScoped<UpdateProfileRequestValidator>();

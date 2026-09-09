@@ -4,11 +4,14 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 
 import { LoginRequest } from '../models/login.model';
+
 import {
   RegisterRequest,
   RegisterResponse
 } from '../models/register.model';
+
 import { AuthResponse } from '../models/auth-response.model';
+
 import {
   UserProfile,
   UpdateProfileRequest
@@ -18,6 +21,7 @@ import {
   providedIn: 'root'
 })
 export class AuthService {
+
   private http = inject(HttpClient);
   private apiUrl = `${environment.apiUrl}/auth`;
 
@@ -93,6 +97,16 @@ export class AuthService {
     return this.http.put<UserProfile>(
       `${this.apiUrl}/profile`,
       data
+    );
+  }
+
+  // Endpoint: GET /api/auth/verify-email
+  verifyEmail(token: string): Observable<{ message: string }> {
+    return this.http.get<{ message: string }>(
+      `${this.apiUrl}/verify-email`,
+      {
+        params: { token }
+      }
     );
   }
 }
