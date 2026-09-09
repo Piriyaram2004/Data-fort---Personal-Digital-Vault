@@ -7,7 +7,7 @@ import {
   ValidationErrors,
   Validators
 } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
@@ -20,11 +20,11 @@ import { AuthService } from '../../services/auth.service';
 export class RegisterComponent {
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
-  private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
 
   errorMessage = '';
   isLoading = false;
+  successMessage = '';
 
   showPassword = false;
   showConfirmPassword = false;
@@ -50,7 +50,9 @@ export class RegisterComponent {
     }
   );
 
-  passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
+  passwordMatchValidator(
+    control: AbstractControl
+  ): ValidationErrors | null {
     const password = control.get('password')?.value;
     const confirmPassword = control.get('confirmPassword')?.value;
 
@@ -67,19 +69,27 @@ export class RegisterComponent {
 
     this.isLoading = true;
     this.errorMessage = '';
+    this.successMessage = '';
 
     this.authService.register(this.registerForm.value).subscribe({
       next: () => {
         this.isLoading = false;
-        this.router.navigate(['/auth/login']);
-      },
-error: (err) => {
-  this.isLoading = false;
-  this.errorMessage =
-    err.error?.message || 'Server error during registration.';
 
-  this.cdr.detectChanges();
-}
+        this.successMessage =
+          'Please check your email and verify your account.';
+
+        this.cdr.detectChanges();
+      },
+
+      error: (err) => {
+        this.isLoading = false;
+
+        this.errorMessage =
+          err.error?.message ||
+          'Server error during registration.';
+
+        this.cdr.detectChanges();
+      }
     });
   }
 }

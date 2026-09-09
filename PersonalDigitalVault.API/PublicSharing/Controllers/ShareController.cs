@@ -8,8 +8,8 @@ using PersonalDigitalVault.API.PublicSharing.Validators;
 namespace PersonalDigitalVault.API.PublicSharing.Controllers
 {
     [ApiController]
-    [Route("api/share-links")]
-    [Authorize]
+    [Route("api/share-links")]    
+    [Authorize] // provide authorization
     public class ShareController : ControllerBase
     {
         private readonly IShareService _shareService;

@@ -18,11 +18,13 @@ namespace PersonalDigitalVault.API.Data
         public DbSet<Role> Roles { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
+        public DbSet<EmailVerificationToken> EmailVerificationTokens { get; set; }
         public DbSet<Folder> Folders { get; set; }
         public DbSet<Document> Documents { get; set; }
         public DbSet<Credential> Credentials { get; set; }
         public DbSet<ShareLink> ShareLinks { get; set; }
         public DbSet<AuditLog> AuditLogs { get; set; }
+
 
         // exact database rules and relationships I want to enforce,
         // including unique constraints, foreign key relationships, and cascade delete behaviors.
@@ -76,6 +78,24 @@ namespace PersonalDigitalVault.API.Data
                 .WithMany(u => u.PasswordResetTokens)
                 .HasForeignKey(t => t.UserId)
                 .OnDelete(DeleteBehavior.NoAction);
+
+
+            // ==============================
+            // EMAIL VERIFICATION TOKEN
+            // ==============================
+
+            modelBuilder.Entity<EmailVerificationToken>()
+                .HasKey(t => t.TokenId);
+
+            modelBuilder.Entity<EmailVerificationToken>()
+                .HasOne(t => t.User)
+                .WithMany(u => u.EmailVerificationTokens)
+                .HasForeignKey(t => t.UserId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<EmailVerificationToken>()
+                .HasIndex(t => t.TokenHash)
+                .IsUnique();
 
 
             // ==============================

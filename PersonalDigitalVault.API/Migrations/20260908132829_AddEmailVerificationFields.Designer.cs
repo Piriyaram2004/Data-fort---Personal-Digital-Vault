@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PersonalDigitalVault.API.Data;
 
@@ -11,9 +12,11 @@ using PersonalDigitalVault.API.Data;
 namespace PersonalDigitalVault.API.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260908132829_AddEmailVerificationFields")]
+    partial class AddEmailVerificationFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -177,43 +180,6 @@ namespace PersonalDigitalVault.API.Migrations
                         .HasFilter("[FolderId] IS NOT NULL AND [IsDeleted] = 0");
 
                     b.ToTable("Documents");
-                });
-
-            modelBuilder.Entity("PersonalDigitalVault.API.Models.EmailVerificationToken", b =>
-                {
-                    b.Property<int>("TokenId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("TokenId"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("ExpiresAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("IsUsed")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("TokenHash")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<DateTime?>("UsedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("TokenId");
-
-                    b.HasIndex("TokenHash")
-                        .IsUnique();
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("EmailVerificationTokens");
                 });
 
             modelBuilder.Entity("PersonalDigitalVault.API.Models.Folder", b =>
@@ -483,17 +449,6 @@ namespace PersonalDigitalVault.API.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("PersonalDigitalVault.API.Models.EmailVerificationToken", b =>
-                {
-                    b.HasOne("PersonalDigitalVault.API.Models.User", "User")
-                        .WithMany("EmailVerificationTokens")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("PersonalDigitalVault.API.Models.Folder", b =>
                 {
                     b.HasOne("PersonalDigitalVault.API.Models.Folder", "ParentFolder")
@@ -579,8 +534,6 @@ namespace PersonalDigitalVault.API.Migrations
                     b.Navigation("Credentials");
 
                     b.Navigation("Documents");
-
-                    b.Navigation("EmailVerificationTokens");
 
                     b.Navigation("Folders");
 

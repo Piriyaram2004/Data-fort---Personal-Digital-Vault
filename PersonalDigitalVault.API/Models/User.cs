@@ -17,6 +17,8 @@
         public string? ProfileImageUrl { get; set; }
 
         public bool IsActive { get; set; } = true;
+        public bool IsEmailVerified { get; set; } = false;
+        public DateTime? EmailVerifiedAt { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
@@ -29,6 +31,8 @@
 
         public ICollection<PasswordResetToken> PasswordResetTokens { get; set; }
             = new List<PasswordResetToken>();
+        public ICollection<EmailVerificationToken> EmailVerificationTokens { get; set; }
+            = new List<EmailVerificationToken>();
 
         public ICollection<Folder> Folders { get; set; }
             = new List<Folder>();
