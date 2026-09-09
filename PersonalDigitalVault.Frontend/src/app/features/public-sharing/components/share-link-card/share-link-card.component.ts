@@ -11,7 +11,7 @@ import { ShareLink } from '../../models/share-link.model';
 })
 export class ShareLinkCardComponent {
   @Input() link!: ShareLink;
-  @Output() revoke = new EventEmitter<string>();
+  @Output() revoke = new EventEmitter<number>();
 
   copied = false;
 
@@ -22,10 +22,13 @@ export class ShareLinkCardComponent {
   copyUrl(): void {
     navigator.clipboard.writeText(this.fullPublicUrl);
     this.copied = true;
-    setTimeout(() => (this.copied = false), 2000);
+
+    setTimeout(() => {
+      this.copied = false;
+    }, 2000);
   }
 
   onRevoke(): void {
-    this.revoke.emit(this.link.id);
+    this.revoke.emit(this.link.shareLinkId);
   }
 }

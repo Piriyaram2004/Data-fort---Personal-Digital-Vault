@@ -1,39 +1,74 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+
 import { environment } from '../../../../environments/environment';
-import { ApiResponse } from '../../../core/models/api-response.model';
-import { ShareLink, CreateShareLinkRequest, PublicFileDetails } from '../models/share-link.model';
+import {
+  ShareLink,
+  CreateShareLinkRequest,
+  PublicFileDetails
+} from '../models/share-link.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class PublicSharingService {
-  private http = inject(HttpClient);
-  private apiUrl = `${environment.apiUrl}/public-sharing`;
+  private readonly http = inject(HttpClient);
 
-  // Endpoint: GET /api/public-sharing/links
-  getShareLinks(): Observable<ApiResponse<ShareLink[]>> {
-    return this.http.get<ApiResponse<ShareLink[]>>(`${this.apiUrl}/links`);
+  private readonly apiUrl = `${environment.apiUrl}`;
+
+  // GET /api/share-links
+  getShareLinks(): Observable<ShareLink[]> {
+    return this.http.get<ShareLink[]>(
+      `${this.apiUrl}/share-links`
+    );
   }
 
-  // Endpoint: POST /api/public-sharing/links
-  createShareLink(request: CreateShareLinkRequest): Observable<ApiResponse<ShareLink>> {
-    return this.http.post<ApiResponse<ShareLink>>(`${this.apiUrl}/links`, request);
+  // POST /api/share-links
+  createShareLink(
+    request: CreateShareLinkRequest
+  ): Observable<ShareLink> {
+    return this.http.post<ShareLink>(
+      `${this.apiUrl}/share-links`,
+      request
+    );
   }
 
-  // Endpoint: POST /api/public-sharing/links/:id/revoke
-  revokeShareLink(id: string): Observable<ApiResponse<void>> {
-    return this.http.post<ApiResponse<void>>(`${this.apiUrl}/links/${id}/revoke`, {});
+  // PUT /api/share-links/{id}
+  updateShareLinkExpiry(
+    id: number,
+    expiresAt: string | null
+  ): Observable<ShareLink> {
+    return this.http.put<ShareLink>(
+      `${this.apiUrl}/share-links/${id}`,
+      { expiresAt }
+    );
   }
 
-  // Endpoint: GET /api/public-sharing/file/:token (Public unauthenticated access)
-  getPublicFileDetails(token: string): Observable<ApiResponse<PublicFileDetails>> {
-    return this.http.get<ApiResponse<PublicFileDetails>>(`${this.apiUrl}/file/${token}`);
+  // POST /api/share-links/{id}/revoke
+  revokeShareLink(id: number): Observable<ShareLink> {
+    return this.http.post<ShareLink>(
+      `${this.apiUrl}/share-links/${id}/revoke`,
+      {}
+    );
   }
 
-  // Endpoint: GET /api/public-sharing/file/:token/download (Public download)
+  // GET /api/public/share/{token}
+  getPublicFileDetails(
+    token: string
+  ): Observable<PublicFileDetails> {
+    return this.http.get<PublicFileDetails>(
+      `${this.apiUrl}/public/share/${token}`
+    );
+  }
+
+  // GET /api/public/share/{token}/download
   downloadPublicFile(token: string): Observable<Blob> {
-    return this.http.get(`${this.apiUrl}/file/${token}/download`, { responseType: 'blob' });
+    return this.http.get(
+      `${this.apiUrl}/public/share/${token}/download`,
+      {
+        responseType: 'blob'
+      }
+    );
   }
 }
