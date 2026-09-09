@@ -15,6 +15,8 @@ namespace PersonalDigitalVault.API.Authentication.Services
         private readonly IPasswordResetTokenRepository _passwordResetTokenRepository;
         private readonly PasswordResetTokenHelper _passwordResetTokenHelper;
         private readonly IEmailService _emailService;
+        private readonly IEmailVerificationTokenRepository _emailVerificationTokenRepository;
+        private readonly EmailVerificationTokenHelper _emailVerificationTokenHelper;
 
         public AuthService(
             IUserRepository userRepository,
@@ -23,7 +25,9 @@ namespace PersonalDigitalVault.API.Authentication.Services
             JwtTokenHelper jwtTokenHelper,
             IPasswordResetTokenRepository passwordResetTokenRepository,
             PasswordResetTokenHelper passwordResetTokenHelper,
-            IEmailService emailService)
+            IEmailService emailService,
+            IEmailVerificationTokenRepository emailVerificationTokenRepository,
+            EmailVerificationTokenHelper emailVerificationTokenHelper)
         {
             _userRepository = userRepository;
             _roleRepository = roleRepository;
@@ -32,6 +36,8 @@ namespace PersonalDigitalVault.API.Authentication.Services
             _passwordResetTokenRepository = passwordResetTokenRepository;
             _passwordResetTokenHelper = passwordResetTokenHelper;
             _emailService = emailService;
+            _emailVerificationTokenRepository = emailVerificationTokenRepository;
+            _emailVerificationTokenHelper = emailVerificationTokenHelper;
         }
 
         public async Task<RegisterResponseDto> RegisterAsync(
@@ -78,6 +84,30 @@ namespace PersonalDigitalVault.API.Authentication.Services
                     request.Password);
 
             await _userRepository.AddAsync(user);
+            var rawToken =
+                _emailVerificationTokenHelper.GenerateToken();
+
+            var tokenHash =
+                _emailVerificationTokenHelper.HashToken(rawToken);
+
+            var verificationToken = new EmailVerificationToken
+            {
+                UserId = user.UserId,
+                TokenHash = tokenHash,
+                ExpiresAt = DateTime.UtcNow.AddMinutes(15),
+                IsUsed = false,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            await _emailVerificationTokenRepository
+                .AddAsync(verificationToken);
+
+            var verificationLink =
+                $"http://localhost:4200/auth/verify-email?token={Uri.EscapeDataString(rawToken)}";
+
+            await _emailService.SendEmailVerificationEmailAsync(
+                user.Email,
+                verificationLink);
 
             return new RegisterResponseDto
             {
@@ -89,16 +119,25 @@ namespace PersonalDigitalVault.API.Authentication.Services
             };
         }
 
+        
+
         public async Task<LoginResponseDto> LoginAsync(
             LoginRequestDto request)
         {
             var user = await _userRepository
                 .GetByEmailAsync(request.Email.Trim());
 
+
             if (user == null || !user.IsActive)
             {
                 throw new UnauthorizedAccessException(
                     "Invalid email or password.");
+            }
+
+            if (!user.IsEmailVerified)
+            {
+                throw new UnauthorizedAccessException(
+                    "Email is not verified.");
             }
 
             var passwordResult =
@@ -315,6 +354,54 @@ namespace PersonalDigitalVault.API.Authentication.Services
                 ProfileImageUrl = user.ProfileImageUrl,
                 Role = user.Role.RoleName
             };
+        }
+
+        public async Task VerifyEmailAsync(string token)
+        {
+            if (string.IsNullOrWhiteSpace(token))
+            {
+                throw new InvalidOperationException(
+                    "Invalid email verification token.");
+            }
+
+            var tokenHash =
+                _emailVerificationTokenHelper.HashToken(token);
+
+            var verificationToken =
+                await _emailVerificationTokenRepository.GetValidTokenAsync(
+                    tokenHash,
+                    DateTime.UtcNow);
+
+            if (verificationToken == null)
+            {
+                throw new InvalidOperationException(
+                    "Invalid or expired email verification link.");
+            }
+
+            var user =
+                await _userRepository.GetByIdAsync(
+                    verificationToken.UserId);
+
+            if (user == null || !user.IsActive)
+            {
+                throw new InvalidOperationException(
+                    "User account is not available.");
+            }
+
+            if (user.IsEmailVerified)
+            {
+                throw new InvalidOperationException(
+                    "Email is already verified.");
+            }
+
+            user.IsEmailVerified = true;
+            user.EmailVerifiedAt = DateTime.UtcNow;
+            user.UpdatedAt = DateTime.UtcNow;
+
+            verificationToken.IsUsed = true;
+            verificationToken.UsedAt = DateTime.UtcNow;
+
+            await _userRepository.SaveChangesAsync();
         }
     }
 }
