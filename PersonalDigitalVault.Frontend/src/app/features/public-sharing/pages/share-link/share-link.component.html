@@ -62,11 +62,11 @@
             >
               <option value="">-- Choose Document --</option>
 
-              @for (doc of documents; track doc.id) {
-                <option [value]="doc.id">
-                  {{ doc.fileName }}
-                </option>
-              }
+              @for (doc of documents; track doc.documentId) {
+  <option [value]="doc.documentId">
+    {{ doc.originalFileName }}
+  </option>
+}
             </select>
           </div>
 
