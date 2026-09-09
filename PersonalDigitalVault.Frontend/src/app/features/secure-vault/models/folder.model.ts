@@ -1,12 +1,21 @@
 export interface Folder {
-  id: string;
-  name: string;
-  description?: string;
-  documentCount?: number;
+  folderId: number;
+  userId: number;
+  parentFolderId: number | null;
+  folderName: string;
+  description: string | null;
+  isDeleted: boolean;
   createdAt: string;
+  updatedAt: string;
 }
 
 export interface CreateFolderRequest {
-  name: string;
-  description?: string;
+  folderName: string;
+  parentFolderId: number | null;
+  description: string | null;
+}
+
+export interface UpdateFolderRequest {
+  folderName: string;
+  description: string | null;
 }

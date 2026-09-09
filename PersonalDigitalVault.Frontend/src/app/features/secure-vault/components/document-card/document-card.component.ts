@@ -1,5 +1,6 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { RouterLink } from '@angular/router';
+
 import { DocumentItem } from '../../models/document.model';
 import { FileSizePipe } from '../../../../shared/pipes/file-size.pipe';
 import { IntegrityBadgeComponent } from '../integrity-badge/integrity-badge.component';
@@ -7,14 +8,19 @@ import { IntegrityBadgeComponent } from '../integrity-badge/integrity-badge.comp
 @Component({
   selector: 'app-document-card',
   standalone: true,
-  imports: [RouterLink, FileSizePipe, IntegrityBadgeComponent],
+  imports: [
+    RouterLink,
+    FileSizePipe,
+    
+  ],
   templateUrl: './document-card.component.html',
   styleUrl: './document-card.component.css'
 })
 export class DocumentCardComponent {
   @Input() document!: DocumentItem;
+
   @Output() download = new EventEmitter<DocumentItem>();
-  @Output() delete = new EventEmitter<string>();
+  @Output() delete = new EventEmitter<number>();
 
   onDownload(event: Event): void {
     event.stopPropagation();
@@ -23,6 +29,6 @@ export class DocumentCardComponent {
 
   onDelete(event: Event): void {
     event.stopPropagation();
-    this.delete.emit(this.document.id);
+    this.delete.emit(this.document.documentId);
   }
 }
