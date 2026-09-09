@@ -9,6 +9,7 @@ import { DocumentItem } from '../models/document.model';
   providedIn: 'root'
 })
 export class DocumentService {
+
   private http = inject(HttpClient);
   private apiUrl = `${environment.apiUrl}/documents`;
 
@@ -32,7 +33,26 @@ export class DocumentService {
   downloadDocument(id: number): Observable<Blob> {
     return this.http.get(
       `${this.apiUrl}/${id}/download`,
-      { responseType: 'blob' }
+      {
+        responseType: 'blob'
+      }
+    );
+  }
+
+  // API #11
+  // POST /api/documents/{id}/verify-integrity
+  verifyIntegrity(
+    id: number
+  ): Observable<{
+    documentId: number;
+    isIntegrityValid: boolean;
+  }> {
+    return this.http.post<{
+      documentId: number;
+      isIntegrityValid: boolean;
+    }>(
+      `${this.apiUrl}/${id}/verify-integrity`,
+      {}
     );
   }
 

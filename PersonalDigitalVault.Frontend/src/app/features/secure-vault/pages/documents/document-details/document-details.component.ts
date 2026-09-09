@@ -1,14 +1,12 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
-import { finalize } from 'rxjs';
 
 import { DocumentService } from '../../../services/document.service';
 import { DocumentItem } from '../../../models/document.model';
 
 import { FileSizePipe } from '../../../../../shared/pipes/file-size.pipe';
 import { IntegrityBadgeComponent } from '../../../components/integrity-badge/integrity-badge.component';
-import { LoadingComponent } from '../../../../../shared/components/loading/loading.component';
 import { ConfirmDialogComponent } from '../../../../../shared/components/confirm-dialog/confirm-dialog.component';
 
 @Component({
@@ -41,9 +39,8 @@ export class DocumentDetailsComponent implements OnInit {
   integrityMessage = '';
 
   ngOnInit(): void {
-    const id = this.route.snapshot.paramMap.get('id');
 
-    console.log('Document Details - Route ID:', id);
+    const id = this.route.snapshot.paramMap.get('id');
 
     if (!id) {
       this.isLoading = false;
@@ -63,68 +60,87 @@ export class DocumentDetailsComponent implements OnInit {
   }
 
   loadDocumentDetails(documentId: number): void {
+
     this.isLoading = true;
     this.errorMessage = '';
+    this.integrityVerified = null;
+    this.integrityMessage = '';
     this.document = null;
 
-    console.log(
-      'Document Details - Loading document:',
-      documentId
-    );
+    // First load the document information
+    this.documentService.getDocuments().subscribe({
+
+      next: (documents: DocumentItem[]) => {
+
+        const foundDocument = documents.find(
+          item => item.documentId === documentId
+        );
+
+        if (!foundDocument) {
+          this.isLoading = false;
+          this.errorMessage = 'Document not found.';
+          return;
+        }
+
+        this.document = foundDocument;
+
+        // Then verify the document integrity
+        this.verifyDocumentIntegrity(documentId);
+      },
+
+      error: (error) => {
+
+        console.error(
+          'Failed to load document details:',
+          error
+        );
+
+        this.document = null;
+        this.isLoading = false;
+        this.errorMessage =
+          'Unable to load document details.';
+      }
+    });
+  }
+
+  verifyDocumentIntegrity(documentId: number): void {
 
     this.documentService
-      .getDocuments()
-      .pipe(
-        finalize(() => {
-          console.log(
-            'Document Details - Request finished'
-          );
-
-          this.isLoading = false;
-        })
-      )
+      .verifyIntegrity(documentId)
       .subscribe({
-        next: (documents: DocumentItem[]) => {
 
-          console.log(
-            'Document Details - Documents received:',
-            documents
-          );
+        next: (result) => {
 
-          const foundDocument = documents.find(
-            item => item.documentId === documentId
-          );
+          this.integrityVerified =
+            result.isIntegrityValid;
 
-          if (foundDocument) {
+          if (result.isIntegrityValid) {
 
-            console.log(
-              'Document Details - Document found:',
-              foundDocument
-            );
-
-            this.document = foundDocument;
+            this.integrityMessage =
+              'Document integrity verified successfully.';
 
           } else {
 
-            console.warn(
-              'Document Details - Document not found:',
-              documentId
-            );
-
-            this.errorMessage = 'Document not found.';
+            this.integrityMessage =
+              'Document integrity verification failed.';
           }
+
+          this.isLoading = false;
         },
 
         error: (error) => {
 
           console.error(
-            'Document Details - Failed to load documents:',
+            'Failed to verify document integrity:',
             error
           );
 
-          this.document = null;
-          this.errorMessage =
-            'Unable to load document details.';
+          this.integrityVerified = null;
+
+          this.integrityMessage =
+            'Unable to verify document integrity.';
+
+          this.isLoading = false;
         }
       });
   }
@@ -138,13 +154,15 @@ export class DocumentDetailsComponent implements OnInit {
     this.documentService
       .downloadDocument(this.document.documentId)
       .subscribe({
+
         next: (blob) => {
 
           const url = window.URL.createObjectURL(blob);
           const link = window.document.createElement('a');
 
           link.href = url;
-          link.download = this.document!.originalFileName;
+          link.download =
+            this.document!.originalFileName;
 
           link.click();
 
@@ -182,6 +200,7 @@ export class DocumentDetailsComponent implements OnInit {
     this.documentService
       .deleteDocument(this.document.documentId)
       .subscribe({
+
         next: () => {
 
           this.showDeleteDialog = false;
@@ -205,6 +224,7 @@ export class DocumentDetailsComponent implements OnInit {
   }
 
   cancelDelete(): void {
+
     this.showDeleteDialog = false;
   }
 }
