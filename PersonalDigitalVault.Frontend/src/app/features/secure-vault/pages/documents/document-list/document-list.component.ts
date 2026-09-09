@@ -5,7 +5,6 @@ import { DocumentService } from '../../../services/document.service';
 import { DocumentItem } from '../../../models/document.model';
 
 import { DocumentCardComponent } from '../../../components/document-card/document-card.component';
-import { LoadingComponent } from '../../../../../shared/components/loading/loading.component';
 import { EmptyStateComponent } from '../../../../../shared/components/empty-state/empty-state.component';
 import { ConfirmDialogComponent } from '../../../../../shared/components/confirm-dialog/confirm-dialog.component';
 
@@ -15,7 +14,6 @@ import { ConfirmDialogComponent } from '../../../../../shared/components/confirm
   imports: [
     RouterLink,
     DocumentCardComponent,
-    LoadingComponent,
     EmptyStateComponent,
     ConfirmDialogComponent
   ],
@@ -42,12 +40,14 @@ export class DocumentListComponent implements OnInit {
     this.errorMessage = '';
 
     this.documentService.getDocuments().subscribe({
-      next: (documents) => {
+      next: (documents: DocumentItem[]) => {
         this.documents = documents;
         this.isLoading = false;
       },
+
       error: (error) => {
         console.error('Failed to load documents:', error);
+
         this.documents = [];
         this.isLoading = false;
         this.errorMessage = 'Unable to load documents.';
@@ -55,24 +55,29 @@ export class DocumentListComponent implements OnInit {
     });
   }
 
- onDownloadDocument(documentItem: DocumentItem): void {
-  this.documentService.downloadDocument(documentItem.documentId).subscribe({
-    next: (blob) => {
-      const url = window.URL.createObjectURL(blob);
-      const link = window.document.createElement('a');
+  onDownloadDocument(documentItem: DocumentItem): void {
+    this.documentService
+      .downloadDocument(documentItem.documentId)
+      .subscribe({
+        next: (blob) => {
+          const url = window.URL.createObjectURL(blob);
+          const link = window.document.createElement('a');
 
-      link.href = url;
-      link.download = documentItem.originalFileName;
-      link.click();
+          link.href = url;
+          link.download = documentItem.originalFileName;
 
-      window.URL.revokeObjectURL(url);
-    },
-    error: (error) => {
-      console.error('Failed to download document:', error);
-      this.errorMessage = 'Unable to download document.';
-    }
-  });
-}
+          link.click();
+
+          window.URL.revokeObjectURL(url);
+        },
+
+        error: (error) => {
+          console.error('Failed to download document:', error);
+          this.errorMessage = 'Unable to download document.';
+        }
+      });
+  }
+
   onPromptDeleteDocument(documentId: number): void {
     this.selectedDocumentId = documentId;
     this.showDeleteDialog = true;
@@ -89,12 +94,16 @@ export class DocumentListComponent implements OnInit {
       next: () => {
         this.showDeleteDialog = false;
         this.selectedDocumentId = null;
+
         this.loadDocuments();
       },
+
       error: (error) => {
         console.error('Failed to delete document:', error);
+
         this.showDeleteDialog = false;
         this.selectedDocumentId = null;
+
         this.errorMessage = 'Unable to delete document.';
       }
     });

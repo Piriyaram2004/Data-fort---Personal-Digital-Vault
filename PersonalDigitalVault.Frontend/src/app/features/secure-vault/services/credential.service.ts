@@ -1,39 +1,49 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+
 import { environment } from '../../../../environments/environment';
-import { ApiResponse } from '../../../core/models/api-response.model';
-import { CredentialItem, CreateCredentialRequest } from '../models/credential.model';
+
+import {
+  CredentialItem,
+  CreateCredentialRequest,
+  UpdateCredentialRequest
+} from '../models/credential.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class CredentialService {
   private http = inject(HttpClient);
+
   private apiUrl = `${environment.apiUrl}/credentials`;
 
-  // Endpoint: GET /api/credentials
-  getCredentials(): Observable<ApiResponse<CredentialItem[]>> {
-    return this.http.get<ApiResponse<CredentialItem[]>>(this.apiUrl);
+  getCredentials(): Observable<CredentialItem[]> {
+    return this.http.get<CredentialItem[]>(this.apiUrl);
   }
 
-  // Endpoint: GET /api/credentials/:id
-  getCredentialById(id: string): Observable<ApiResponse<CredentialItem>> {
-    return this.http.get<ApiResponse<CredentialItem>>(`${this.apiUrl}/${id}`);
+  createCredential(
+    credential: CreateCredentialRequest
+  ): Observable<CredentialItem> {
+    return this.http.post<CredentialItem>(
+      this.apiUrl,
+      credential
+    );
   }
 
-  // Endpoint: POST /api/credentials
-  createCredential(credential: CreateCredentialRequest): Observable<ApiResponse<CredentialItem>> {
-    return this.http.post<ApiResponse<CredentialItem>>(this.apiUrl, credential);
+  updateCredential(
+    id: number,
+    credential: UpdateCredentialRequest
+  ): Observable<CredentialItem> {
+    return this.http.put<CredentialItem>(
+      `${this.apiUrl}/${id}`,
+      credential
+    );
   }
 
-  // Endpoint: PUT /api/credentials/:id
-  updateCredential(id: string, credential: CreateCredentialRequest): Observable<ApiResponse<CredentialItem>> {
-    return this.http.put<ApiResponse<CredentialItem>>(`${this.apiUrl}/${id}`, credential);
-  }
-
-  // Endpoint: DELETE /api/credentials/:id
-  deleteCredential(id: string): Observable<ApiResponse<void>> {
-    return this.http.delete<ApiResponse<void>>(`${this.apiUrl}/${id}`);
+  deleteCredential(id: number): Observable<void> {
+    return this.http.delete<void>(
+      `${this.apiUrl}/${id}`
+    );
   }
 }

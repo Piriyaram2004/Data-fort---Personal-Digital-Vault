@@ -1,7 +1,13 @@
 <div class="space-y-6">
+
+  <!-- Page Header -->
   <div class="flex items-center justify-between">
+
     <div>
-      <h1 class="text-2xl font-bold text-slate-900">Vault Documents</h1>
+      <h1 class="text-2xl font-bold text-slate-900">
+        Vault Documents
+      </h1>
+
       <p class="text-xs text-slate-500 mt-1">
         All stored encrypted documents
       </p>
@@ -13,34 +19,74 @@
     >
       + Upload Document
     </a>
+
   </div>
 
+
+  <!-- Loading -->
   @if (isLoading) {
-    <app-loading message="Loading documents..." />
+
+    <div class="flex flex-col items-center justify-center py-20">
+
+      <div
+        class="w-10 h-10 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"
+      ></div>
+
+      <p class="mt-4 text-sm text-slate-500">
+        Loading documents...
+      </p>
+
+    </div>
+
   }
+
+
+  <!-- Error -->
   @else if (errorMessage) {
-    <div class="p-4 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
+
+    <div
+      class="p-4 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm"
+    >
       {{ errorMessage }}
     </div>
+
   }
+
+
+  <!-- Empty -->
   @else if (documents.length === 0) {
+
     <app-empty-state
       title="No Documents Found"
       message="Upload your first file to store it safely in the vault."
     />
+
   }
+
+
+  <!-- Documents -->
   @else {
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+
+    <div
+      class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
+    >
+
       @for (doc of documents; track doc.documentId) {
+
         <app-document-card
           [document]="doc"
           (download)="onDownloadDocument($event)"
           (delete)="onPromptDeleteDocument($event)"
         />
+
       }
+
     </div>
+
   }
 
+
+  <!-- Delete Confirmation -->
   <app-confirm-dialog
     [isOpen]="showDeleteDialog"
     title="Delete Document"
@@ -48,4 +94,5 @@
     (confirm)="confirmDelete()"
     (cancel)="cancelDelete()"
   />
+
 </div>

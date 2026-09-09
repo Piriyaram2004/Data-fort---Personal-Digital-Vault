@@ -1,63 +1,275 @@
 <div class="space-y-6">
+
+  <!-- Header -->
   <div>
-    <h1 class="text-2xl font-bold text-slate-900">Vault Search</h1>
-    <p class="text-xs text-slate-500 mt-1">Search across folders, documents, and stored credentials</p>
+    <h1 class="text-2xl font-bold text-slate-900">
+      Vault Search
+    </h1>
+
+    <p class="text-xs text-slate-500 mt-1">
+      Search across folders, documents, and stored credentials
+    </p>
   </div>
 
+
+  <!-- Search Box -->
   <div class="flex space-x-3 max-w-xl">
+
     <input
       type="text"
       [(ngModel)]="searchQuery"
+      (ngModelChange)="onSearchInput($event)"
       (keyup.enter)="onSearch()"
       placeholder="Search by name, file type, or service..."
       class="flex-1 px-4 py-2.5 bg-white border border-slate-300 rounded-xl text-sm focus:outline-none focus:border-blue-500 shadow-xs"
     />
+
     <button
+      type="button"
       (click)="onSearch()"
-      class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs rounded-xl transition"
+      [disabled]="isLoading || searchQuery.trim().length < 2"
+      class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-medium text-xs rounded-xl transition"
     >
-      Search
+      {{ isLoading ? 'Searching...' : 'Search' }}
     </button>
+
   </div>
 
+
+  <!-- Error -->
+  @if (errorMessage) {
+
+    <div
+      class="p-4 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm"
+    >
+      {{ errorMessage }}
+    </div>
+
+  }
+
+
+  <!-- Loading -->
   @if (isLoading) {
+
     <app-loading message="Searching vault..." />
-  } @else if (hasSearched) {
-    @if (results.folders.length === 0 && results.documents.length === 0 && results.credentials.length === 0) {
-      <app-empty-state title="No Matches Found" message="No vault items matched your search query." />
+
+  }
+
+
+  <!-- Search Results -->
+  @else if (hasSearched) {
+
+    @if (
+      results.folders.length === 0 &&
+      results.documents.length === 0 &&
+      results.credentials.length === 0
+    ) {
+
+      <app-empty-state
+        title="No Matches Found"
+        message="No vault items matched your search query."
+      />
+
     } @else {
+
+      <!-- ==================== FOLDERS ==================== -->
+
       @if (results.folders.length > 0) {
+
         <section>
-          <h2 class="text-sm font-bold text-slate-800 mb-3">Folders ({{ results.folders.length }})</h2>
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+
+          <h2 class="text-sm font-bold text-slate-800 mb-3">
+            Folders ({{ results.folders.length }})
+          </h2>
+
+          <div
+            class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"
+          >
+
             @for (folder of results.folders; track folder.folderId) {
-              <app-folder-card [folder]="folder" />
+
+              <a
+                [routerLink]="[
+                  '/vault/folders/edit',
+                  folder.folderId
+                ]"
+                class="block bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:border-amber-300 transition cursor-pointer"
+              >
+
+                <div class="flex items-center gap-3">
+
+                  <div
+                    class="w-10 h-10 bg-amber-50 rounded-lg flex items-center justify-center text-amber-600 shrink-0"
+                  >
+                    📁
+                  </div>
+
+                  <div class="min-w-0">
+
+                    <h3
+                      class="font-semibold text-sm text-slate-900 truncate"
+                    >
+                      {{ folder.folderName }}
+                    </h3>
+
+                    @if (folder.description) {
+
+                      <p
+                        class="text-xs text-slate-500 mt-1 truncate"
+                      >
+                        {{ folder.description }}
+                      </p>
+
+                    }
+
+                  </div>
+
+                </div>
+
+              </a>
+
             }
+
           </div>
+
         </section>
+
       }
+
+
+      <!-- ==================== DOCUMENTS ==================== -->
 
       @if (results.documents.length > 0) {
+
         <section>
-          <h2 class="text-sm font-bold text-slate-800 mb-3">Documents ({{ results.documents.length }})</h2>
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+
+          <h2 class="text-sm font-bold text-slate-800 mb-3">
+            Documents ({{ results.documents.length }})
+          </h2>
+
+          <div
+            class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"
+          >
+
             @for (doc of results.documents; track doc.documentId) {
-              <app-document-card [document]="doc" />
+
+              <a
+                [routerLink]="[
+                  '/vault/documents',
+                  doc.documentId
+                ]"
+                class="block bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:border-blue-300 transition cursor-pointer"
+              >
+
+                <div class="flex items-center gap-3">
+
+                  <div
+                    class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center text-blue-600 shrink-0"
+                  >
+                    📄
+                  </div>
+
+                  <div class="min-w-0">
+
+                    <h3
+                      class="font-semibold text-sm text-slate-900 truncate"
+                    >
+                      {{ doc.originalFileName }}
+                    </h3>
+
+                    <p
+                      class="text-xs text-slate-500 mt-1 truncate"
+                    >
+                      {{ doc.fileType }}
+                    </p>
+
+                  </div>
+
+                </div>
+
+              </a>
+
             }
+
           </div>
+
         </section>
+
       }
 
+
+      <!-- ==================== CREDENTIALS ==================== -->
+
       @if (results.credentials.length > 0) {
+
         <section>
-          <h2 class="text-sm font-bold text-slate-800 mb-3">Credentials ({{ results.credentials.length }})</h2>
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            @for (cred of results.credentials; track cred.id) {
-              <app-credential-card [credential]="cred" />
+
+          <h2 class="text-sm font-bold text-slate-800 mb-3">
+            Credentials ({{ results.credentials.length }})
+          </h2>
+
+          <div
+            class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"
+          >
+
+            @for (cred of results.credentials; track cred.credentialId) {
+
+              <a
+                [routerLink]="[
+                  '/vault/credentials/edit',
+                  cred.credentialId
+                ]"
+                class="block bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:border-emerald-300 transition cursor-pointer"
+              >
+
+                <div class="flex items-center gap-3">
+
+                  <div
+                    class="w-10 h-10 bg-emerald-50 rounded-lg flex items-center justify-center text-emerald-600 shrink-0"
+                  >
+                    🔑
+                  </div>
+
+                  <div class="min-w-0">
+
+                    <h3
+                      class="font-semibold text-sm text-slate-900 truncate"
+                    >
+                      {{ cred.title }}
+                    </h3>
+
+                    <p
+                      class="text-xs text-slate-500 mt-1 truncate"
+                    >
+                      {{ cred.userName }}
+                    </p>
+
+                  </div>
+
+                </div>
+
+                @if (cred.notes) {
+
+                  <p
+                    class="text-xs text-slate-500 mt-3 truncate"
+                  >
+                    {{ cred.notes }}
+                  </p>
+
+                }
+
+              </a>
+
             }
+
           </div>
+
         </section>
+
       }
+
     }
+
   }
+
 </div>
