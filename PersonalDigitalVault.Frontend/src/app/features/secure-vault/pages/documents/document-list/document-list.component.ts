@@ -1,5 +1,5 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 
 import { DocumentService } from '../../../services/document.service';
 import { DocumentItem } from '../../../models/document.model';
@@ -21,7 +21,9 @@ import { ConfirmDialogComponent } from '../../../../../shared/components/confirm
   styleUrl: './document-list.component.css'
 })
 export class DocumentListComponent implements OnInit {
+
   private documentService = inject(DocumentService);
+  private route = inject(ActivatedRoute);
 
   documents: DocumentItem[] = [];
 
@@ -31,8 +33,20 @@ export class DocumentListComponent implements OnInit {
   showDeleteDialog = false;
   selectedDocumentId: number | null = null;
 
+  // Stores the folder ID from the URL.
+  // null means the user is viewing all documents.
+  selectedFolderId: number | null = null;
+
   ngOnInit(): void {
-    this.loadDocuments();
+    this.route.queryParamMap.subscribe(params => {
+
+      const folderId = params.get('folderId');
+
+      this.selectedFolderId =
+        folderId !== null ? Number(folderId) : null;
+
+      this.loadDocuments();
+    });
   }
 
   loadDocuments(): void {
@@ -41,7 +55,23 @@ export class DocumentListComponent implements OnInit {
 
     this.documentService.getDocuments().subscribe({
       next: (documents: DocumentItem[]) => {
-        this.documents = documents;
+
+        // If a folder is selected,
+        // show only documents belonging to that folder.
+        if (this.selectedFolderId !== null) {
+
+          this.documents = documents.filter(
+            document =>
+              document.folderId === this.selectedFolderId
+          );
+
+        } else {
+
+          // No folder selected.
+          // Show all documents.
+          this.documents = documents;
+        }
+
         this.isLoading = false;
       },
 
