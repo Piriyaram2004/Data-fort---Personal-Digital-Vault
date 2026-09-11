@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 
 @Injectable({
   providedIn: 'root'
@@ -6,16 +6,21 @@ import { Injectable } from '@angular/core';
 export class TokenService {
   private readonly TOKEN_KEY = 'auth_token';
 
+  // Used to notify services when the token changes.
+  readonly tokenVersion = signal(0);
+
   getToken(): string | null {
     return sessionStorage.getItem(this.TOKEN_KEY);
   }
 
   setToken(token: string): void {
     sessionStorage.setItem(this.TOKEN_KEY, token);
+    this.tokenVersion.update(value => value + 1);
   }
 
   clearToken(): void {
     sessionStorage.removeItem(this.TOKEN_KEY);
+    this.tokenVersion.update(value => value + 1);
   }
 
   hasToken(): boolean {
@@ -52,6 +57,17 @@ export class TokenService {
   isAdmin(): boolean {
     const role = this.getUserRole();
     return role?.toLowerCase() === 'admin';
+  }
+
+  getTokenExpiryTime(): number | null {
+    const payload = this.getJwtPayload();
+
+    if (!payload || typeof payload.exp !== 'number') {
+      return null;
+    }
+
+    // JWT exp is in seconds. JavaScript Date.now() is in milliseconds.
+    return payload.exp * 1000;
   }
 
   private getJwtPayload(): any {

@@ -1,9 +1,10 @@
 import { Component, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { SessionExpiredComponent } from './shared/components/session-expired/session-expired.component';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
+  imports: [RouterOutlet, SessionExpiredComponent],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
