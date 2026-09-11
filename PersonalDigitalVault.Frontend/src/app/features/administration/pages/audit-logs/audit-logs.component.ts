@@ -1,7 +1,9 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { DatePipe } from '@angular/common';
+
 import { AdminAuditLogService } from '../../services/admin-audit-log.service';
 import { AuditLog } from '../../models/audit-log.model';
+
 import { LoadingComponent } from '../../../../shared/components/loading/loading.component';
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
 
@@ -13,7 +15,8 @@ import { EmptyStateComponent } from '../../../../shared/components/empty-state/e
   styleUrl: './audit-logs.component.css'
 })
 export class AuditLogsComponent implements OnInit {
-  private auditLogService = inject(AdminAuditLogService);
+  private readonly auditLogService = inject(AdminAuditLogService);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   logs: AuditLog[] = [];
   isLoading = true;
@@ -24,16 +27,17 @@ export class AuditLogsComponent implements OnInit {
 
   loadLogs(): void {
     this.isLoading = true;
+
     this.auditLogService.getAuditLogs().subscribe({
-      next: (res) => {
+      next: (logs: AuditLog[]) => {
+        this.logs = logs;
         this.isLoading = false;
-        if (res.success && res.data) {
-          this.logs = res.data;
-        }
+        this.cdr.detectChanges();
       },
       error: () => {
-        this.isLoading = false;
         this.logs = [];
+        this.isLoading = false;
+        this.cdr.detectChanges();
       }
     });
   }

@@ -1,31 +1,27 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
+
 import { AdminUserService } from '../../services/admin-user.service';
-import { AdminUser } from '../../models/admin-user.model';
-import { UserTableComponent } from '../../components/user-table/user-table.component';
-import { LoadingComponent } from '../../../../shared/components/loading/loading.component';
-import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
-import { ConfirmDialogComponent } from '../../../../shared/components/confirm-dialog/confirm-dialog.component';
+import {
+  AdminUser,
+  UpdateAdminUserStatusRequest
+} from '../../models/admin-user.model';
 
 @Component({
   selector: 'app-users',
   standalone: true,
-  imports: [
-    UserTableComponent,
-    LoadingComponent,
-    EmptyStateComponent,
-    ConfirmDialogComponent
-  ],
+  imports: [],
   templateUrl: './users.component.html',
   styleUrl: './users.component.css'
 })
 export class UsersComponent implements OnInit {
-  private adminUserService = inject(AdminUserService);
+  private readonly adminUserService = inject(AdminUserService);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   users: AdminUser[] = [];
   isLoading = true;
-
-  showDeleteDialog = false;
-  selectedUserId: string | null = null;
+  errorMessage = '';
+  successMessage = '';
+  updatingUserId: number | null = null;
 
   ngOnInit(): void {
     this.loadUsers();
@@ -33,43 +29,46 @@ export class UsersComponent implements OnInit {
 
   loadUsers(): void {
     this.isLoading = true;
+    this.errorMessage = '';
+
     this.adminUserService.getUsers().subscribe({
-      next: (res) => {
+      next: (users: AdminUser[]) => {
+        this.users = users;
         this.isLoading = false;
-        if (res.success && res.data) {
-          this.users = res.data;
-        }
+        this.cdr.detectChanges();
       },
       error: () => {
-        this.isLoading = false;
         this.users = [];
+        this.isLoading = false;
+        this.errorMessage = 'Unable to load users.';
+        this.cdr.detectChanges();
       }
     });
   }
 
   onToggleUserStatus(user: AdminUser): void {
-    this.adminUserService.updateUser(user.id, { role: user.role, isActive: !user.isActive }).subscribe({
-      next: () => {
-        this.loadUsers();
-      }
-    });
-  }
+    const request: UpdateAdminUserStatusRequest = {
+      isActive: !user.isActive
+    };
 
-  onPromptDeleteUser(id: string): void {
-    this.selectedUserId = id;
-    this.showDeleteDialog = true;
-  }
+    this.updatingUserId = user.userId;
+    this.errorMessage = '';
+    this.successMessage = '';
 
-  confirmDelete(): void {
-    if (!this.selectedUserId) return;
-    this.adminUserService.deleteUser(this.selectedUserId).subscribe({
-      next: () => {
-        this.showDeleteDialog = false;
-        this.loadUsers();
-      },
-      error: () => {
-        this.showDeleteDialog = false;
-      }
-    });
+    this.adminUserService
+      .updateUserStatus(user.userId, request)
+      .subscribe({
+        next: () => {
+          user.isActive = request.isActive;
+          this.successMessage = 'User status updated successfully.';
+          this.updatingUserId = null;
+          this.cdr.detectChanges();
+        },
+        error: () => {
+          this.errorMessage = 'Unable to update user status.';
+          this.updatingUserId = null;
+          this.cdr.detectChanges();
+        }
+      });
   }
 }

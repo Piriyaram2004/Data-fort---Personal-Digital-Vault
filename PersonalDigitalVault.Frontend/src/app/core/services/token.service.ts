@@ -50,9 +50,9 @@ export class TokenService {
   }
 
   isAdmin(): boolean {
-    const role = this.getUserRole();
-    return role?.toLowerCase() === 'admin';
-  }
+  const role = this.getUserRole();
+  return role?.toLowerCase() === 'administrator';
+}
 
   private getJwtPayload(): any {
     const token = this.getToken();

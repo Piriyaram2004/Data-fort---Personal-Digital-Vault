@@ -1,13 +1,14 @@
 export interface AdminUser {
-  id: string;
-  username: string;
+  userId: number;
   email: string;
-  role: string;
+  userName: string;
+  fullName: string;
+  profileImageUrl: string | null;
   isActive: boolean;
   createdAt: string;
+  roleName: string;
 }
 
-export interface UpdateUserRoleRequest {
-  role: string;
+export interface UpdateAdminUserStatusRequest {
   isActive: boolean;
 }
