@@ -125,14 +125,7 @@ namespace PersonalDigitalVault.API.PublicSharing.Controllers
                 });
             }
 
-            if (request.ExpiresAt.HasValue &&
-                request.ExpiresAt.Value <= DateTime.UtcNow)
-            {
-                return BadRequest(new
-                {
-                    message = "Expiry date and time must be in the future."
-                });
-            }
+            
 
             var result = await _shareService
                 .UpdateShareLinkAsync(
@@ -149,6 +142,36 @@ namespace PersonalDigitalVault.API.PublicSharing.Controllers
             }
 
             return Ok(result);
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteShareLink(int id)
+        {
+            var userIdClaim = User.FindFirstValue(
+                ClaimTypes.NameIdentifier);
+
+            if (!int.TryParse(userIdClaim, out var userId))
+            {
+                return Unauthorized(new
+                {
+                    message = "Invalid user authentication."
+                });
+            }
+
+            var deleted = await _shareService
+                .DeleteShareLinkAsync(
+                    userId,
+                    id);
+
+            if (!deleted)
+            {
+                return NotFound(new
+                {
+                    message = "Share link not found or access denied."
+                });
+            }
+
+            return NoContent();
         }
 
     }

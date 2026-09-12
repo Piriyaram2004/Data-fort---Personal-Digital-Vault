@@ -1,4 +1,5 @@
 ﻿using PersonalDigitalVault.API.PublicSharing.DTOs;
+using PersonalDigitalVault.API.PublicSharing.Helpers;
 
 namespace PersonalDigitalVault.API.PublicSharing.Validators
 {
@@ -11,10 +12,16 @@ namespace PersonalDigitalVault.API.PublicSharing.Validators
                 return "A valid document ID is required.";
             }
 
-            if (request.ExpiresAt.HasValue &&
-                request.ExpiresAt.Value <= DateTime.UtcNow)
+            if (request.ExpiresAt.HasValue)
             {
-                return "Expiry date and time must be in the future.";
+                var expiresAtUtc =
+                    ShareLinkTimeHelper.ConvertLocalToUtc(
+                        request.ExpiresAt.Value);
+
+                if (expiresAtUtc <= DateTime.UtcNow)
+                {
+                    return "Expiry date and time must be in the future.";
+                }
             }
 
             return null;

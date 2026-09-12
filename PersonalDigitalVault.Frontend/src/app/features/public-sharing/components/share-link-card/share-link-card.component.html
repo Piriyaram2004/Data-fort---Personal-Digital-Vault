@@ -1,7 +1,17 @@
-<div class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs hover:shadow-md transition flex flex-col justify-between h-44">
+<div
+  class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs hover:shadow-md transition flex flex-col justify-between h-44"
+>
+  <!-- Top section -->
   <div class="flex items-start justify-between">
-    <div class="w-10 h-10 bg-purple-50 rounded-lg flex items-center justify-center text-purple-600">
-      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div
+      class="w-10 h-10 bg-purple-50 rounded-lg flex items-center justify-center text-purple-600"
+    >
+      <svg
+        class="w-6 h-6"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
         <path
           stroke-linecap="round"
           stroke-linejoin="round"
@@ -11,25 +21,38 @@
       </svg>
     </div>
 
+    <!-- Status -->
     @if (link.isRevoked) {
-      <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-red-100 text-red-800">
+      <span
+        class="px-2 py-0.5 rounded text-[10px] font-semibold bg-red-100 text-red-800"
+      >
         Revoked
       </span>
+    } @else if (isExpired) {
+      <span
+        class="px-2 py-0.5 rounded text-[10px] font-semibold bg-red-100 text-red-800"
+      >
+        Expired
+      </span>
     } @else {
-      <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-100 text-emerald-800">
+      <span
+        class="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-100 text-emerald-800"
+      >
         Active
       </span>
     }
   </div>
 
+  <!-- Document information -->
   <div>
     <h3 class="font-semibold text-slate-900 text-sm">
       Document #{{ link.documentId }}
     </h3>
 
-    @if (link.expiresAt) {
+    @if (displayExpiryDate) {
       <p class="text-xs text-slate-500 mt-0.5">
-        Expires: {{ link.expiresAt | date:'short' }}
+        Expires:
+        {{ displayExpiryDate | date:'short' }}
       </p>
     } @else {
       <p class="text-xs text-slate-500 mt-0.5">
@@ -38,22 +61,37 @@
     }
   </div>
 
-  <div class="pt-2 border-t border-slate-100 flex items-center justify-between">
-    <button
-      (click)="copyUrl()"
-      [disabled]="link.isRevoked"
-      class="text-xs text-blue-600 hover:underline disabled:opacity-40 font-medium"
-    >
-      {{ copied ? 'Link Copied!' : 'Copy Share URL' }}
-    </button>
+  <!-- Actions -->
+<div
+  class="pt-2 border-t border-slate-100 flex items-center justify-between gap-3"
+>
+  <button
+    type="button"
+    (click)="copyUrl()"
+    [disabled]="!isActive"
+    class="text-xs text-blue-600 hover:underline disabled:opacity-40 disabled:cursor-not-allowed font-medium"
+  >
+    {{ copied ? 'Link Copied!' : 'Copy Share URL' }}
+  </button>
 
-    @if (!link.isRevoked) {
+  <div class="flex items-center gap-3">
+    @if (isActive) {
       <button
+        type="button"
         (click)="onRevoke()"
         class="text-xs text-red-600 hover:underline font-medium"
       >
         Revoke
       </button>
     }
+
+    <button
+      type="button"
+      (click)="onDelete()"
+      class="text-xs text-red-700 hover:underline font-semibold"
+    >
+      Delete
+    </button>
   </div>
+</div>
 </div>
