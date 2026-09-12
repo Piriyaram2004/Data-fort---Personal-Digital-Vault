@@ -19,5 +19,9 @@ namespace PersonalDigitalVault.API.PublicSharing.Services.Interfaces
         Task<ShareLinkDto?> RevokeShareLinkAsync(
             int userId,
             int shareLinkId);
+
+        Task<bool> DeleteShareLinkAsync(
+            int userId,
+            int shareLinkId);
     }
 }

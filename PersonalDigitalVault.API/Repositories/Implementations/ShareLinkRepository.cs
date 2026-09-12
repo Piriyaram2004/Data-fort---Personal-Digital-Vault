@@ -43,6 +43,12 @@ namespace PersonalDigitalVault.API.Repositories.Implementations
             await _context.SaveChangesAsync();
         }
 
+        public async Task DeleteAsync(ShareLink shareLink)
+        {
+            _context.ShareLinks.Remove(shareLink);
+            await _context.SaveChangesAsync();
+        }
+
         public async Task<ShareLink?> GetByTokenAsync(string token)
         {
             return await _context.ShareLinks

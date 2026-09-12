@@ -26,9 +26,10 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
       @for (link of links; track link.shareLinkId) {
         <app-share-link-card
-          [link]="link"
-          (revoke)="onPromptRevoke($event)"
-        />
+  [link]="link"
+  (revoke)="onPromptRevoke($event)"
+  (delete)="onPromptDelete($event)"
+/>
       }
     </div>
   }
@@ -110,12 +111,21 @@
     </div>
   }
 
-  <!-- Revoke Confirmation -->
-  <app-confirm-dialog
-    [isOpen]="showRevokeDialog"
-    title="Revoke Share Link"
-    message="Are you sure you want to revoke this public share link? External users will no longer be able to download the file."
-    (confirm)="confirmRevoke()"
-    (cancel)="showRevokeDialog = false"
-  />
+ <!-- Revoke Confirmation -->
+<app-confirm-dialog
+  [isOpen]="showRevokeDialog"
+  title="Revoke Share Link"
+  message="Are you sure you want to revoke this public share link? External users will no longer be able to download the file."
+  (confirm)="confirmRevoke()"
+  (cancel)="showRevokeDialog = false"
+/>
+
+<!-- Delete Confirmation -->
+<app-confirm-dialog
+  [isOpen]="showDeleteDialog"
+  title="Delete Share Link"
+  message="Are you sure you want to permanently delete this share link? The public URL will immediately stop working. This action cannot be undone."
+  (confirm)="confirmDelete()"
+  (cancel)="showDeleteDialog = false"
+/>
 </div>

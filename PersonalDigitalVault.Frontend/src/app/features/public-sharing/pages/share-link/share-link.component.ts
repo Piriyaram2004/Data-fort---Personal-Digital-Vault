@@ -45,8 +45,13 @@ export class ShareLinkComponent implements OnInit {
   isLoading = true;
   showCreateModal = false;
 
+  // Revoke dialog
   showRevokeDialog = false;
   selectedLinkId: number | null = null;
+
+  // Delete dialog
+  showDeleteDialog = false;
+  selectedDeleteLinkId: number | null = null;
 
   createForm: FormGroup = this.fb.group({
     documentId: ['', [Validators.required]],
@@ -58,6 +63,9 @@ export class ShareLinkComponent implements OnInit {
     this.loadDocuments();
   }
 
+  /**
+   * Load all share links belonging to the logged-in user.
+   */
   loadLinks(): void {
     this.isLoading = true;
 
@@ -73,17 +81,24 @@ export class ShareLinkComponent implements OnInit {
     });
   }
 
-loadDocuments(): void {
-  this.documentService.getDocuments().subscribe({
-    next: (documents: DocumentItem[]) => {
-      this.documents = documents;
-    },
-    error: (error) => {
-      console.error('Failed to load documents:', error);
-      this.documents = [];
-    }
-  });
-}
+  /**
+   * Load documents that can be shared.
+   */
+  loadDocuments(): void {
+    this.documentService.getDocuments().subscribe({
+      next: (documents: DocumentItem[]) => {
+        this.documents = documents;
+      },
+      error: (error) => {
+        console.error('Failed to load documents:', error);
+        this.documents = [];
+      }
+    });
+  }
+
+  /**
+   * Create a new public share link.
+   */
   onCreateShareLink(): void {
     if (this.createForm.invalid) {
       this.createForm.markAllAsTouched();
@@ -105,15 +120,24 @@ loadDocuments(): void {
         });
 
         this.loadLinks();
+      },
+      error: (error) => {
+        console.error('Failed to create share link:', error);
       }
     });
   }
 
+  /**
+   * Open the revoke confirmation dialog.
+   */
   onPromptRevoke(id: number): void {
     this.selectedLinkId = id;
     this.showRevokeDialog = true;
   }
 
+  /**
+   * Revoke the selected share link.
+   */
   confirmRevoke(): void {
     if (this.selectedLinkId === null) {
       return;
@@ -125,11 +149,52 @@ loadDocuments(): void {
         next: () => {
           this.showRevokeDialog = false;
           this.selectedLinkId = null;
+
           this.loadLinks();
         },
-        error: () => {
+        error: (error) => {
+          console.error('Failed to revoke share link:', error);
+
           this.showRevokeDialog = false;
           this.selectedLinkId = null;
+        }
+      });
+  }
+
+  /**
+   * Open the permanent delete confirmation dialog.
+   */
+  onPromptDelete(id: number): void {
+    this.selectedDeleteLinkId = id;
+    this.showDeleteDialog = true;
+  }
+
+  /**
+   * Permanently delete the selected share link.
+   *
+   * Once deleted, the ShareLink database record no longer exists.
+   * Therefore the old public URL becomes invalid immediately.
+   */
+  confirmDelete(): void {
+    if (this.selectedDeleteLinkId === null) {
+      return;
+    }
+
+    this.sharingService
+      .deleteShareLink(this.selectedDeleteLinkId)
+      .subscribe({
+        next: () => {
+          this.showDeleteDialog = false;
+          this.selectedDeleteLinkId = null;
+
+          // Refresh the list after successful deletion.
+          this.loadLinks();
+        },
+        error: (error) => {
+          console.error('Failed to delete share link:', error);
+
+          this.showDeleteDialog = false;
+          this.selectedDeleteLinkId = null;
         }
       });
   }
