@@ -1,0 +1,16 @@
+﻿using PersonalDigitalVault.API.Authentication.DTOs;
+
+namespace PersonalDigitalVault.API.Authentication.Services
+{
+    public interface IAuthService
+    {
+        Task<RegisterResponseDto> RegisterAsync(RegisterRequestDto request);
+        Task<LoginResponseDto> LoginAsync(LoginRequestDto request);
+        Task ForgotPasswordAsync(ForgotPasswordRequestDto request);
+        Task ResetPasswordAsync(ResetPasswordRequestDto request);
+        Task ChangePasswordAsync(int userId,ChangePasswordRequestDto request);
+        Task<ProfileResponseDto> GetProfileAsync(int userId);
+        Task<ProfileResponseDto> UpdateProfileAsync(int userId,UpdateProfileRequestDto request);
+        Task VerifyEmailAsync(string token);
+    }
+}

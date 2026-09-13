@@ -1,0 +1,51 @@
+<div class="min-h-screen df-surface-soft flex items-center justify-center p-4">
+  <div
+    class="max-w-md w-full df-glass p-8 rounded-2xl border border-violet-100 shadow-2xl text-center"
+  >
+    <div
+      class="inline-flex items-center justify-center w-14 h-14 bg-purple-900/50 text-purple-400 rounded-2xl mb-4 font-bold text-2xl"
+    >
+      DF
+    </div>
+
+    <h1 class="text-xl font-bold text-slate-900 mb-1">Public File Download</h1>
+
+    <p class="text-xs text-slate-500 mb-6">Data Fort Secured Link</p>
+
+    @if (isLoading) {
+      <app-loading message="Verifying share link..." />
+    } @else if (errorMessage) {
+      <div class="p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-xs">
+        {{ errorMessage }}
+      </div>
+    } @else if (fileDetails) {
+      <div class="df-surface-soft p-4 rounded-xl border border-violet-100 text-left space-y-3 mb-6">
+        <div>
+          <span class="block text-[10px] uppercase font-semibold text-slate-500"> File Name </span>
+
+          <span class="text-sm font-semibold text-slate-700 truncate block">
+            {{ fileDetails.fileName }}
+          </span>
+        </div>
+
+        <div class="flex justify-between text-xs text-slate-500">
+          <span> Size: {{ fileDetails.fileSize | fileSize }} </span>
+
+          @if (fileDetails.expiresAt) {
+            <span> Expires: {{ fileDetails.expiresAt | date: 'shortDate' }} </span>
+          } @else {
+            <span> No Expiry </span>
+          }
+        </div>
+      </div>
+
+      <button
+        (click)="onDownloadPublicFile()"
+        [disabled]="isDownloading"
+        class="w-full py-3 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white font-medium text-sm rounded-xl transition shadow-lg shadow-purple-600/30"
+      >
+        {{ isDownloading ? 'Preparing Download...' : 'Download File' }}
+      </button>
+    }
+  </div>
+</div>

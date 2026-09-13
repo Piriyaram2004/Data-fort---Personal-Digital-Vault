@@ -1,0 +1,204 @@
+<aside class="app-sidebar" aria-label="Main navigation">
+  <div class="sidebar-top">
+    <strong>WORKSPACE</strong
+    ><button
+      type="button"
+      class="desktop-toggle"
+      [attr.aria-label]="navigation.collapsed() ? 'Expand sidebar' : 'Collapse sidebar'"
+      [attr.aria-expanded]="!navigation.collapsed()"
+      (click)="navigation.toggleCollapsed()"
+    >
+      {{ navigation.collapsed() ? '›' : '‹' }}</button
+    ><button
+      class="drawer-close"
+      type="button"
+      aria-label="Close navigation"
+      (click)="navigation.close()"
+    >
+      ✕
+    </button>
+  </div>
+  @if (!isAdmin) {
+    <section class="nav-section">
+      <h2>Digital vault</h2>
+      <nav>
+        <a
+          routerLink="/vault"
+          routerLinkActive="nav-active"
+          ariaCurrentWhenActive="page"
+          [routerLinkActiveOptions]="{ exact: true }"
+          class="nav-link"
+          title="Vault Home"
+          (click)="navigation.close()"
+          ><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+            /></svg
+          ><span class="nav-label">Vault Home</span></a
+        ><a
+          routerLink="/vault/folders"
+          routerLinkActive="nav-active"
+          ariaCurrentWhenActive="page"
+          class="nav-link"
+          title="Folders"
+          (click)="navigation.close()"
+          ><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
+            /></svg
+          ><span class="nav-label">Folders</span></a
+        ><a
+          routerLink="/vault/documents"
+          routerLinkActive="nav-active"
+          ariaCurrentWhenActive="page"
+          class="nav-link"
+          title="Documents"
+          (click)="navigation.close()"
+          ><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+            /></svg
+          ><span class="nav-label">Documents</span></a
+        ><a
+          routerLink="/vault/credentials"
+          routerLinkActive="nav-active"
+          ariaCurrentWhenActive="page"
+          class="nav-link"
+          title="Credentials"
+          (click)="navigation.close()"
+          ><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 0121 9z"
+            /></svg
+          ><span class="nav-label">Credentials</span></a
+        ><a
+          routerLink="/vault/search"
+          routerLinkActive="nav-active"
+          ariaCurrentWhenActive="page"
+          class="nav-link"
+          title="Search Vault"
+          (click)="navigation.close()"
+          ><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+            /></svg
+          ><span class="nav-label">Search Vault</span></a
+        >
+      </nav>
+    </section>
+    <section class="nav-section">
+      <h2>Connect & share</h2>
+      <nav>
+        <a
+          routerLink="/sharing/manage"
+          routerLinkActive="nav-active"
+          ariaCurrentWhenActive="page"
+          class="nav-link"
+          title="Share Links"
+          (click)="navigation.close()"
+          ><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
+            /></svg
+          ><span class="nav-label">Share Links</span></a
+        >
+      </nav>
+    </section>
+  }
+  @if (isAdmin) {
+    <section class="nav-section">
+      <h2>Administration</h2>
+      <nav>
+        <a
+          routerLink="/admin/dashboard"
+          routerLinkActive="nav-active"
+          ariaCurrentWhenActive="page"
+          class="nav-link"
+          title="Dashboard"
+          (click)="navigation.close()"
+          ><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2 2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+            /></svg
+          ><span class="nav-label">Dashboard</span></a
+        ><a
+          routerLink="/admin/users"
+          routerLinkActive="nav-active"
+          ariaCurrentWhenActive="page"
+          class="nav-link"
+          title="User Management"
+          (click)="navigation.close()"
+          ><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
+            /></svg
+          ><span class="nav-label">User Management</span></a
+        ><a
+          routerLink="/admin/audit-logs"
+          routerLinkActive="nav-active"
+          ariaCurrentWhenActive="page"
+          class="nav-link"
+          title="Audit Logs"
+          (click)="navigation.close()"
+          ><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+            /></svg
+          ><span class="nav-label">Audit Logs</span></a
+        >
+      </nav>
+    </section>
+  }
+  <section class="nav-section">
+    <h2>Account</h2>
+    <nav>
+      <a routerLink="/auth/profile" class="nav-link" title="My profile" (click)="navigation.close()"
+        ><svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M20 21v-2a7 7 0 0 0-14 0v2 M17 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0" /></svg
+        ><span class="nav-label">My Profile</span></a
+      >
+    </nav>
+  </section>
+  <div class="sidebar-bottom">
+    <div class="sidebar-security">
+      <strong><span class="security-dot"></span>Your space. Your control.</strong
+      ><small>A little peace of mind, every day.</small>
+    </div>
+    <p class="sidebar-version">DATA FORT · V3.0</p>
+  </div>
+</aside>

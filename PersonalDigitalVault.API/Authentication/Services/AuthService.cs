@@ -1,0 +1,407 @@
+﻿using Microsoft.AspNetCore.Identity;
+using PersonalDigitalVault.API.Authentication.DTOs;
+using PersonalDigitalVault.API.Authentication.Helpers;
+using PersonalDigitalVault.API.Models;
+using PersonalDigitalVault.API.Repositories.Interfaces;
+
+namespace PersonalDigitalVault.API.Authentication.Services
+{
+    public class AuthService : IAuthService
+    {
+        private readonly IUserRepository _userRepository;
+        private readonly IRoleRepository _roleRepository;
+        private readonly IPasswordHasher<User> _passwordHasher;
+        private readonly JwtTokenHelper _jwtTokenHelper;
+        private readonly IPasswordResetTokenRepository _passwordResetTokenRepository;
+        private readonly PasswordResetTokenHelper _passwordResetTokenHelper;
+        private readonly IEmailService _emailService;
+        private readonly IEmailVerificationTokenRepository _emailVerificationTokenRepository;
+        private readonly EmailVerificationTokenHelper _emailVerificationTokenHelper;
+
+        public AuthService(
+            IUserRepository userRepository,
+            IRoleRepository roleRepository,
+            IPasswordHasher<User> passwordHasher,
+            JwtTokenHelper jwtTokenHelper,
+            IPasswordResetTokenRepository passwordResetTokenRepository,
+            PasswordResetTokenHelper passwordResetTokenHelper,
+            IEmailService emailService,
+            IEmailVerificationTokenRepository emailVerificationTokenRepository,
+            EmailVerificationTokenHelper emailVerificationTokenHelper)
+        {
+            _userRepository = userRepository;
+            _roleRepository = roleRepository;
+            _passwordHasher = passwordHasher;
+            _jwtTokenHelper = jwtTokenHelper;
+            _passwordResetTokenRepository = passwordResetTokenRepository;
+            _passwordResetTokenHelper = passwordResetTokenHelper;
+            _emailService = emailService;
+            _emailVerificationTokenRepository = emailVerificationTokenRepository;
+            _emailVerificationTokenHelper = emailVerificationTokenHelper;
+        }
+
+        public async Task<RegisterResponseDto> RegisterAsync(
+            RegisterRequestDto request)
+        {
+            var email = request.Email.Trim();
+            var userName = request.UserName.Trim();
+            var fullName = request.FullName.Trim();
+
+            if (await _userRepository.EmailExistsAsync(email))
+            {
+                throw new InvalidOperationException(
+                    "Email is already registered.");
+            }
+
+            if (await _userRepository.UserNameExistsAsync(userName))
+            {
+                throw new InvalidOperationException(
+                    "User name is already taken.");
+            }
+
+            var userRole = await _roleRepository.GetByNameAsync("User");
+
+            if (userRole == null)
+            {
+                throw new InvalidOperationException(
+                    "User role is not configured.");
+            }
+
+            var user = new User
+            {
+                Email = email,
+                UserName = userName,
+                FullName = fullName,
+                RoleId = userRole.RoleId,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            user.PasswordHash =
+                _passwordHasher.HashPassword(
+                    user,
+                    request.Password);
+
+            await _userRepository.AddAsync(user);
+            var rawToken =
+                _emailVerificationTokenHelper.GenerateToken();
+
+            var tokenHash =
+                _emailVerificationTokenHelper.HashToken(rawToken);
+
+            var verificationToken = new EmailVerificationToken
+            {
+                UserId = user.UserId,
+                TokenHash = tokenHash,
+                ExpiresAt = DateTime.UtcNow.AddMinutes(15),
+                IsUsed = false,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            await _emailVerificationTokenRepository
+                .AddAsync(verificationToken);
+
+            var verificationLink =
+                $"http://localhost:4200/auth/verify-email?token={Uri.EscapeDataString(rawToken)}";
+
+            await _emailService.SendEmailVerificationEmailAsync(
+                user.Email,
+                verificationLink);
+
+            return new RegisterResponseDto
+            {
+                UserId = user.UserId,
+                Email = user.Email,
+                UserName = user.UserName,
+                FullName = user.FullName,
+                Role = userRole.RoleName
+            };
+        }
+
+        
+
+        public async Task<LoginResponseDto> LoginAsync(
+            LoginRequestDto request)
+        {
+            var user = await _userRepository
+                .GetByEmailAsync(request.Email.Trim());
+
+
+            if (user == null || !user.IsActive)
+            {
+                throw new UnauthorizedAccessException(
+                    "Invalid email or password.");
+            }
+
+            if (!user.IsEmailVerified)
+            {
+                throw new UnauthorizedAccessException(
+                    "Email is not verified.");
+            }
+
+            var passwordResult =
+                _passwordHasher.VerifyHashedPassword(
+                    user,
+                    user.PasswordHash,
+                    request.Password);
+
+            if (passwordResult == PasswordVerificationResult.Failed)
+            {
+                throw new UnauthorizedAccessException(
+                    "Invalid email or password.");
+            }
+
+            var token = _jwtTokenHelper.GenerateToken(user);
+
+            return new LoginResponseDto
+            {
+                UserId = user.UserId,
+                Email = user.Email,
+                UserName = user.UserName,
+                FullName = user.FullName,
+                Role = user.Role.RoleName,
+                Token = token
+            };
+        }
+
+        public async Task ForgotPasswordAsync(
+            ForgotPasswordRequestDto request)
+        {
+            var user = await _userRepository
+                .GetByEmailAsync(request.Email.Trim());
+
+            if (user == null || !user.IsActive)
+            {
+                return;
+            }
+
+            var rawToken =
+                _passwordResetTokenHelper.GenerateToken();
+
+            var tokenHash =
+                _passwordResetTokenHelper.HashToken(rawToken);
+
+            var resetToken = new PasswordResetToken
+            {
+                UserId = user.UserId,
+                TokenHash = tokenHash,
+                ExpiresAt = DateTime.UtcNow.AddMinutes(15),
+                IsUsed = false,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            await _passwordResetTokenRepository
+                .AddAsync(resetToken);
+
+            var resetLink =
+                $"http://localhost:4200/auth/reset-password?token={Uri.EscapeDataString(rawToken)}&email={Uri.EscapeDataString(user.Email)}";
+
+            await _emailService.SendPasswordResetEmailAsync(
+                user.Email,
+                resetLink);
+
+            // Raw token is used only in the reset link.
+            // Do not store, return, or log the raw token.
+        }
+
+        public async Task ResetPasswordAsync(
+            ResetPasswordRequestDto request)
+        {
+            var user = await _userRepository
+                .GetByEmailAsync(request.Email.Trim());
+
+            if (user == null || !user.IsActive)
+            {
+                throw new InvalidOperationException(
+                    "Invalid or expired password reset request.");
+            }
+
+            var tokenHash =
+                _passwordResetTokenHelper.HashToken(
+                    request.Token);
+
+            var resetToken =
+                await _passwordResetTokenRepository
+                    .GetValidTokenAsync(
+                        tokenHash,
+                        DateTime.UtcNow);
+
+            if (resetToken == null ||
+                resetToken.UserId != user.UserId)
+            {
+                throw new InvalidOperationException(
+                    "Invalid or expired password reset request.");
+            }
+
+            user.PasswordHash =
+                _passwordHasher.HashPassword(
+                    user,
+                    request.NewPassword);
+
+            user.LastPasswordChangedAt = DateTime.UtcNow;
+            user.UpdatedAt = DateTime.UtcNow;
+
+            resetToken.IsUsed = true;
+            resetToken.UsedAt = DateTime.UtcNow;
+
+            await _userRepository.SaveChangesAsync();
+        }
+
+        public async Task ChangePasswordAsync(
+            int userId,
+            ChangePasswordRequestDto request)
+        {
+            var user = await _userRepository.GetByIdAsync(userId);
+
+            if (user == null || !user.IsActive)
+            {
+                throw new UnauthorizedAccessException(
+                    "User account is not available.");
+            }
+
+            var currentPasswordResult =
+                _passwordHasher.VerifyHashedPassword(
+                    user,
+                    user.PasswordHash,
+                    request.CurrentPassword);
+
+            if (currentPasswordResult == PasswordVerificationResult.Failed)
+            {
+                throw new InvalidOperationException(
+                    "Current password is incorrect.");
+            }
+
+            user.PasswordHash =
+                _passwordHasher.HashPassword(
+                    user,
+                    request.NewPassword);
+
+            var now = DateTime.UtcNow;
+
+            user.LastPasswordChangedAt = now;
+            user.UpdatedAt = now;
+
+            await _userRepository.SaveChangesAsync();
+        }
+
+        public async Task<ProfileResponseDto> GetProfileAsync(int userId)
+        {
+            var user = await _userRepository.GetByIdAsync(userId);
+
+            if (user == null || !user.IsActive)
+            {
+                throw new UnauthorizedAccessException(
+                    "User account is not available.");
+            }
+
+            return new ProfileResponseDto
+            {
+                UserId = user.UserId,
+                Email = user.Email,
+                UserName = user.UserName,
+                FullName = user.FullName,
+                ProfileImageUrl = user.ProfileImageUrl,
+                Role = user.Role.RoleName
+            };
+        }
+
+        public async Task<ProfileResponseDto> UpdateProfileAsync(
+            int userId,
+            UpdateProfileRequestDto request)
+        {
+            var user = await _userRepository.GetByIdAsync(userId);
+
+            if (user == null || !user.IsActive)
+            {
+                throw new UnauthorizedAccessException(
+                    "User account is not available.");
+            }
+
+            var email = request.Email.Trim();
+            var userName = request.UserName.Trim();
+            var fullName = request.FullName.Trim();
+
+            if (await _userRepository.EmailExistsForOtherUserAsync(
+                email,
+                userId))
+            {
+                throw new InvalidOperationException(
+                    "Email is already registered.");
+            }
+
+            if (await _userRepository.UserNameExistsForOtherUserAsync(
+                userName,
+                userId))
+            {
+                throw new InvalidOperationException(
+                    "User name is already taken.");
+            }
+
+            user.Email = email;
+            user.UserName = userName;
+            user.FullName = fullName;
+            user.UpdatedAt = DateTime.UtcNow;
+
+            await _userRepository.SaveChangesAsync();
+
+            return new ProfileResponseDto
+            {
+                UserId = user.UserId,
+                Email = user.Email,
+                UserName = user.UserName,
+                FullName = user.FullName,
+                ProfileImageUrl = user.ProfileImageUrl,
+                Role = user.Role.RoleName
+            };
+        }
+
+        public async Task VerifyEmailAsync(string token)
+        {
+            if (string.IsNullOrWhiteSpace(token))
+            {
+                throw new InvalidOperationException(
+                    "Invalid email verification token.");
+            }
+
+            var tokenHash =
+                _emailVerificationTokenHelper.HashToken(token);
+
+            var verificationToken =
+                await _emailVerificationTokenRepository.GetValidTokenAsync(
+                    tokenHash,
+                    DateTime.UtcNow);
+
+            if (verificationToken == null)
+            {
+                throw new InvalidOperationException(
+                    "Invalid or expired email verification link.");
+            }
+
+            var user =
+                await _userRepository.GetByIdAsync(
+                    verificationToken.UserId);
+
+            if (user == null || !user.IsActive)
+            {
+                throw new InvalidOperationException(
+                    "User account is not available.");
+            }
+
+            if (user.IsEmailVerified)
+            {
+                throw new InvalidOperationException(
+                    "Email is already verified.");
+            }
+
+            user.IsEmailVerified = true;
+            user.EmailVerifiedAt = DateTime.UtcNow;
+            user.UpdatedAt = DateTime.UtcNow;
+
+            verificationToken.IsUsed = true;
+            verificationToken.UsedAt = DateTime.UtcNow;
+
+            await _userRepository.SaveChangesAsync();
+        }
+    }
+}

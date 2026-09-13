@@ -1,0 +1,134 @@
+<div class="space-y-6">
+  <div>
+    <h1 class="text-2xl font-bold text-slate-900">User Management</h1>
+
+    <p class="mt-1 text-sm text-slate-500">View registered users and manage account status</p>
+  </div>
+
+  @if (successMessage) {
+    <div class="rounded-lg border border-green-200 bg-green-50 p-4">
+      <p class="text-sm text-green-700">
+        {{ successMessage }}
+      </p>
+    </div>
+  }
+
+  @if (errorMessage) {
+    <div class="rounded-lg border border-red-200 bg-red-50 p-4">
+      <p class="text-sm text-red-700">
+        {{ errorMessage }}
+      </p>
+    </div>
+  }
+
+  @if (isLoading) {
+    <div class="rounded-lg border border-slate-200 df-glass p-6">
+      <p class="text-sm text-slate-500">Loading users...</p>
+    </div>
+  } @else if (users.length === 0) {
+    <div class="rounded-lg border border-slate-200 df-glass p-6">
+      <p class="text-sm text-slate-500">No users found.</p>
+    </div>
+  } @else {
+    <div class="overflow-x-auto rounded-lg border border-slate-200 df-glass">
+      <table class="min-w-full divide-y divide-slate-200">
+        <thead class="bg-slate-50">
+          <tr>
+            <th
+              class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500"
+            >
+              User
+            </th>
+            <th
+              class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500"
+            >
+              Email
+            </th>
+            <th
+              class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500"
+            >
+              Role
+            </th>
+            <th
+              class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500"
+            >
+              Status
+            </th>
+            <th
+              class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500"
+            >
+              Created
+            </th>
+            <th
+              class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500"
+            >
+              Action
+            </th>
+          </tr>
+        </thead>
+
+        <tbody class="divide-y divide-slate-100">
+          @for (user of users; track user.userId) {
+            <tr>
+              <td class="px-4 py-4">
+                <div>
+                  <p class="font-medium text-slate-900">
+                    {{ user.fullName }}
+                  </p>
+                  <p class="text-sm text-slate-500">
+                    {{ user.userName }}
+                  </p>
+                </div>
+              </td>
+
+              <td class="px-4 py-4 text-sm text-slate-700">
+                {{ user.email }}
+              </td>
+
+              <td class="px-4 py-4 text-sm text-slate-700">
+                {{ user.roleName }}
+              </td>
+
+              <td class="px-4 py-4">
+                @if (user.isActive) {
+                  <span
+                    class="rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-700"
+                  >
+                    Active
+                  </span>
+                } @else {
+                  <span
+                    class="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600"
+                  >
+                    Inactive
+                  </span>
+                }
+              </td>
+
+              <td class="px-4 py-4 text-sm text-slate-700">
+                {{ user.createdAt }}
+              </td>
+
+              <td class="px-4 py-4">
+                <button
+                  type="button"
+                  class="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+                  [disabled]="updatingUserId === user.userId"
+                  (click)="onToggleUserStatus(user)"
+                >
+                  @if (updatingUserId === user.userId) {
+                    Updating...
+                  } @else if (user.isActive) {
+                    Deactivate
+                  } @else {
+                    Activate
+                  }
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

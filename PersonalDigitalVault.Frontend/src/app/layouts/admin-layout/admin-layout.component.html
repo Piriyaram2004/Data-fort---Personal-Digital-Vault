@@ -1,0 +1,32 @@
+<div class="app-shell">
+  <a href="#main-content" class="skip-link">Skip to content</a>
+  <div [attr.inert]="navigation.open() ? '' : null"><app-navbar /></div>
+  <div class="app-body">
+    @if (navigation.open()) {
+      <button
+        type="button"
+        class="drawer-overlay"
+        aria-label="Close navigation"
+        tabindex="-1"
+        (click)="navigation.close()"
+      ></button>
+    }
+    <app-sidebar
+      id="vault-navigation"
+      class="sidebar-host"
+      [class.collapsed]="navigation.collapsed()"
+      [class.drawer-open]="navigation.open()"
+    />
+    <main
+      id="main-content"
+      tabindex="-1"
+      class="app-main"
+      [attr.inert]="navigation.open() ? '' : null"
+    >
+      <div class="admin-banner">
+        <strong>Administrator workspace</strong><span>Data Fort Security Console</span>
+      </div>
+      <router-outlet />
+    </main>
+  </div>
+</div>

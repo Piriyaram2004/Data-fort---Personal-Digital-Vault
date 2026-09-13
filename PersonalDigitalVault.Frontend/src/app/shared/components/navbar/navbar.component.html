@@ -1,0 +1,37 @@
+<header class="app-navbar">
+  <div class="navbar-left">
+    @if (showMenu) {
+      <button
+        type="button"
+        class="menu-toggle mobile-menu"
+        aria-label="Open navigation"
+        aria-controls="vault-navigation"
+        [attr.aria-expanded]="navigation.open()"
+        (click)="navigation.show()"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          aria-hidden="true"
+        >
+          <path d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+    }
+    <a [routerLink]="isAdmin ? '/admin/dashboard' : '/vault'" class="app-brand"
+      ><img src="images/df-shield.svg" alt="" /><span>Data <em>Fort</em></span></a
+    ><span class="vault-label">Your Personal Digital Vault</span>
+  </div>
+  <div class="navbar-right">
+    <div class="navbar-user">
+      <strong>{{ displayUserName }}</strong
+      ><small>{{ userRole || 'User' }}</small>
+    </div>
+    <a routerLink="/auth/profile" class="avatar" aria-label="Open your profile">{{
+      userInitials
+    }}</a
+    ><button type="button" (click)="logout()" class="logout-button">Logout</button>
+  </div>
+</header>

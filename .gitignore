@@ -427,3 +427,5 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+# Data Fort - private runtime encrypted document files
+PersonalDigitalVault.API/Storage/ProtectedFiles/Documents/
