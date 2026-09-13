@@ -1,20 +1,25 @@
 <div
   [routerLink]="['/vault/documents']"
   [queryParams]="{ folderId: folder.folderId }"
-  class="group df-glass p-4 rounded-xl border border-slate-200 shadow-xs hover:shadow-md transition cursor-pointer flex flex-col justify-between h-36"
+  class="group bg-white p-4 rounded-xl border border-slate-200 shadow-xs hover:shadow-md transition cursor-pointer flex flex-col justify-between h-36"
 >
+
   <div class="flex items-start justify-between">
+
     <div
       class="w-10 h-10 bg-amber-50 rounded-lg flex items-center justify-center text-amber-600 group-hover:scale-105 transition"
     >
       📁
     </div>
 
-    <div class="flex space-x-1 opacity-0 group-hover:opacity-100 transition">
+    <div
+      class="flex space-x-1 opacity-0 group-hover:opacity-100 transition"
+    >
+
       <button
         type="button"
         (click)="onEdit($event)"
-        class="p-1 text-slate-500 hover:text-blue-600 rounded"
+        class="p-1 text-slate-400 hover:text-blue-600 rounded"
         title="Edit"
       >
         ✏️
@@ -23,21 +28,28 @@
       <button
         type="button"
         (click)="onDelete($event)"
-        class="p-1 text-slate-500 hover:text-red-600 rounded"
+        class="p-1 text-slate-400 hover:text-red-600 rounded"
         title="Delete"
       >
         🗑️
       </button>
+
     </div>
+
   </div>
 
   <div>
-    <h3 class="font-semibold text-slate-900 text-sm truncate group-hover:text-blue-600 transition">
+
+    <h3
+      class="font-semibold text-slate-900 text-sm truncate group-hover:text-blue-600 transition"
+    >
       {{ folder.folderName }}
     </h3>
 
     <p class="text-xs text-slate-500 truncate mt-0.5">
       {{ folder.description || 'No description' }}
     </p>
+
   </div>
+
 </div>

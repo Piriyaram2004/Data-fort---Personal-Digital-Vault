@@ -1,10 +1,16 @@
 <div class="space-y-6">
+
   <!-- Header -->
   <div class="flex items-center justify-between gap-4">
-    <div>
-      <h1 class="text-2xl font-bold text-slate-900">Vault Folders</h1>
 
-      <p class="text-xs text-slate-500 mt-1">Organize your files into secure folders</p>
+    <div>
+      <h1 class="text-2xl font-bold text-slate-900">
+        Vault Folders
+      </h1>
+
+      <p class="text-xs text-slate-500 mt-1">
+        Organize your files into secure folders
+      </p>
     </div>
 
     <a
@@ -13,16 +19,22 @@
     >
       + New Folder
     </a>
+
   </div>
+
 
   <!-- Loading -->
   @if (isLoading) {
+
     <app-loading message="Loading folders..." />
+
   }
 
   <!-- Error -->
   @else if (errorMessage) {
+
     <div class="rounded-lg border border-red-200 bg-red-50 p-4">
+
       <p class="text-sm text-red-700">
         {{ errorMessage }}
       </p>
@@ -34,29 +46,42 @@
       >
         Try Again
       </button>
+
     </div>
+
   }
 
   <!-- Empty -->
   @else if (folders.length === 0) {
+
     <app-empty-state
       title="No Folders Found"
       message="Create your first folder to organize your vault items."
     />
+
   }
 
   <!-- Folder List -->
   @else {
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+
+    <div
+      class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
+    >
+
       @for (folder of folders; track folder.folderId) {
+
         <app-folder-card
           [folder]="folder"
           (edit)="onEditFolder($event)"
           (delete)="onPromptDeleteFolder($event)"
         />
+
       }
+
     </div>
+
   }
+
 
   <!-- Delete Confirmation -->
   <app-confirm-dialog
@@ -66,4 +91,5 @@
     (confirm)="confirmDelete()"
     (cancel)="cancelDelete()"
   />
+
 </div>
