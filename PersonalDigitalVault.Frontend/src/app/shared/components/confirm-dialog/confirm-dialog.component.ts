@@ -5,8 +5,10 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
   standalone: true,
   template: `
     @if (isOpen) {
-      <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
-        <div class="bg-white rounded-xl shadow-xl max-w-md w-full p-6 border border-gray-100">
+      <div
+        class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4"
+      >
+        <div class="df-glass rounded-xl shadow-xl max-w-md w-full p-6 border border-gray-100">
           <h3 class="text-lg font-bold text-gray-900">{{ title }}</h3>
           <p class="mt-2 text-sm text-gray-600">{{ message }}</p>
           <div class="mt-6 flex justify-end space-x-3">
@@ -26,7 +28,7 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
         </div>
       </div>
     }
-  `
+  `,
 })
 export class ConfirmDialogComponent {
   @Input() isOpen: boolean = false;

@@ -1,71 +1,37 @@
-<header class="bg-slate-900 text-white shadow-md">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-
-    <div class="flex items-center justify-between h-16">
-
-      <!-- Data Fort Logo -->
-      <div class="flex items-center space-x-3">
-
-        <a routerLink="/vault" class="flex items-center space-x-2">
-
-          <div
-            class="w-9 h-9 bg-blue-600 rounded-lg flex items-center justify-center font-bold text-xl tracking-wider"
-          >
-            DF
-          </div>
-
-          <span class="font-bold text-lg tracking-tight">
-            Data Fort
-          </span>
-
-        </a>
-
-        <span
-          class="text-xs px-2 py-0.5 rounded bg-blue-900/60 text-blue-300 font-mono"
+<header class="app-navbar">
+  <div class="navbar-left">
+    @if (showMenu) {
+      <button
+        type="button"
+        class="menu-toggle mobile-menu"
+        aria-label="Open navigation"
+        aria-controls="vault-navigation"
+        [attr.aria-expanded]="navigation.open()"
+        (click)="navigation.show()"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          aria-hidden="true"
         >
-          Personal Vault
-        </span>
-
-      </div>
-
-      <!-- User Section -->
-      <div class="flex items-center space-x-4">
-
-        @if (userName) {
-
-          <div class="text-xs text-right hidden sm:block">
-
-            <p class="font-medium text-slate-200">
-              {{ displayUserName }}
-            </p>
-
-            <p class="text-slate-400 capitalize">
-              {{ userRole || 'User' }}
-            </p>
-
-          </div>
-        }
-
-        <!-- Profile Avatar -->
-        <a
-          routerLink="/auth/profile"
-          class="w-9 h-9 flex items-center justify-center bg-blue-600 text-white font-bold text-sm rounded-full hover:bg-blue-700 transition"
-          title="Profile"
-        >
-          {{ userInitials }}
-        </a>
-
-        <!-- Logout -->
-        <button
-          (click)="logout()"
-          class="px-3 py-1.5 text-xs font-medium text-red-300 hover:text-white bg-red-900/30 hover:bg-red-600 rounded-lg transition"
-        >
-          Logout
-        </button>
-
-      </div>
-
+          <path d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+    }
+    <a [routerLink]="isAdmin ? '/admin/dashboard' : '/vault'" class="app-brand"
+      ><img src="images/df-shield.svg" alt="" /><span>Data <em>Fort</em></span></a
+    ><span class="vault-label">Your Personal Digital Vault</span>
+  </div>
+  <div class="navbar-right">
+    <div class="navbar-user">
+      <strong>{{ displayUserName }}</strong
+      ><small>{{ userRole || 'User' }}</small>
     </div>
-
+    <a routerLink="/auth/profile" class="avatar" aria-label="Open your profile">{{
+      userInitials
+    }}</a
+    ><button type="button" (click)="logout()" class="logout-button">Logout</button>
   </div>
 </header>
