@@ -9,6 +9,7 @@ import {
 } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { TokenService } from '../../../../core/services/token.service';
 
 @Component({
   selector: 'app-change-password',
@@ -20,6 +21,7 @@ import { AuthService } from '../../services/auth.service';
 export class ChangePasswordComponent {
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
+  private tokenService = inject(TokenService);
   private cdr = inject(ChangeDetectorRef);
 
   successMessage = '';
@@ -40,6 +42,16 @@ export class ChangePasswordComponent {
       validators: this.passwordMatchValidator
     }
   );
+
+  /**
+   * Determines where the user should return after
+   * successfully changing the password.
+   */
+  get backRoute(): string {
+    return this.tokenService.isAdmin()
+      ? '/admin/dashboard'
+      : '/vault';
+  }
 
   passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
     const newPassword = control.get('newPassword')?.value;
@@ -78,29 +90,34 @@ export class ChangePasswordComponent {
       confirmPassword
     } = this.changeForm.value;
 
-    this.authService.changePassword(
-  currentPassword,
-  newPassword,
-  confirmPassword
-).subscribe({
-  next: () => {
-    this.isLoading = false;
-    this.successMessage = 'Password changed successfully.';
-    this.changeForm.reset();
+    this.authService
+      .changePassword(
+        currentPassword,
+        newPassword,
+        confirmPassword
+      )
+      .subscribe({
+        next: () => {
+          this.isLoading = false;
+          this.successMessage = 'Password changed successfully.';
 
-    this.showCurrentPassword = false;
-    this.showNewPassword = false;
-    this.showConfirmPassword = false;
+          this.changeForm.reset();
 
-    this.cdr.detectChanges();
-  },
-  error: (err) => {
-    this.isLoading = false;
-    this.errorMessage =
-      err.error?.message || 'Error updating password.';
+          this.showCurrentPassword = false;
+          this.showNewPassword = false;
+          this.showConfirmPassword = false;
 
-    this.cdr.detectChanges();
-  }
-});
+          this.cdr.detectChanges();
+        },
+
+        error: (err) => {
+          this.isLoading = false;
+
+          this.errorMessage =
+            err.error?.message || 'Error updating password.';
+
+          this.cdr.detectChanges();
+        }
+      });
   }
 }
