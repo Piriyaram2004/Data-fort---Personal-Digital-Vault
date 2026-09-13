@@ -1,4 +1,5 @@
-﻿using PersonalDigitalVault.API.Models;
+﻿using PersonalDigitalVault.API.PublicSharing.Helpers;
+using PersonalDigitalVault.API.Models;
 using PersonalDigitalVault.API.PublicSharing.DTOs;
 using PersonalDigitalVault.API.PublicSharing.Services.Interfaces;
 using PersonalDigitalVault.API.Repositories.Interfaces;
@@ -42,7 +43,9 @@ namespace PersonalDigitalVault.API.PublicSharing.Services.Implementations
                 DocumentId = document.DocumentId,
                 UserId = userId,
                 ShareToken = shareToken,
-                ExpiresAt = request.ExpiresAt,
+                ExpiresAt = request.ExpiresAt.HasValue
+    ? ShareLinkTimeHelper.ConvertLocalToUtc(request.ExpiresAt.Value)
+    : null,
                 IsRevoked = false,
                 CreatedAt = DateTime.UtcNow
             };
@@ -82,10 +85,15 @@ namespace PersonalDigitalVault.API.PublicSharing.Services.Implementations
             int shareLinkId,
             DateTime? expiresAt)
         {
-            if (expiresAt.HasValue &&
-                expiresAt.Value <= DateTime.UtcNow)
+            if (expiresAt.HasValue)
             {
-                return null;
+                expiresAt = ShareLinkTimeHelper.ConvertLocalToUtc(
+                    expiresAt.Value);
+
+                if (expiresAt.Value <= DateTime.UtcNow)
+                {
+                    return null;
+                }
             }
 
             var shareLink = await _shareLinkRepository
@@ -142,6 +150,25 @@ namespace PersonalDigitalVault.API.PublicSharing.Services.Implementations
                 CreatedAt = shareLink.CreatedAt
             };
         }
+        public async Task<bool> DeleteShareLinkAsync(
+            int userId,
+            int shareLinkId)
+        {
+            var shareLink = await _shareLinkRepository
+                .GetByIdAndUserIdAsync(
+                    shareLinkId,
+                    userId);
+
+            if (shareLink == null)
+            {
+                return false;
+            }
+
+            await _shareLinkRepository.DeleteAsync(shareLink);
+
+            return true;
+        }
+
 
 
     }

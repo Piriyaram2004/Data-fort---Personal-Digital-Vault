@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 
 @Injectable({
   providedIn: 'root'
@@ -6,16 +6,36 @@ import { Injectable } from '@angular/core';
 export class TokenService {
   private readonly TOKEN_KEY = 'auth_token';
 
+  // Used to notify services when the token changes.
+  readonly tokenVersion = signal(0);
+
+  // Stores the current username for immediate UI updates.
+  readonly userName = signal<string | null>(null);
+
+  constructor() {
+    this.userName.set(this.getUserNameFromToken());
+  }
+
   getToken(): string | null {
     return sessionStorage.getItem(this.TOKEN_KEY);
   }
 
   setToken(token: string): void {
     sessionStorage.setItem(this.TOKEN_KEY, token);
+
+    // Update username when a new token is stored.
+    this.userName.set(this.getUserNameFromToken());
+
+    this.tokenVersion.update(value => value + 1);
   }
 
   clearToken(): void {
     sessionStorage.removeItem(this.TOKEN_KEY);
+
+    // Clear username when the token is removed.
+    this.userName.set(null);
+
+    this.tokenVersion.update(value => value + 1);
   }
 
   hasToken(): boolean {
@@ -24,6 +44,7 @@ export class TokenService {
 
   getUserRole(): string | null {
     const payload = this.getJwtPayload();
+
     if (!payload) return null;
 
     return payload.role ||
@@ -33,6 +54,7 @@ export class TokenService {
 
   getUserEmail(): string | null {
     const payload = this.getJwtPayload();
+
     if (!payload) return null;
 
     return payload.email ||
@@ -41,17 +63,39 @@ export class TokenService {
   }
 
   getUserName(): string | null {
+    return this.userName();
+  }
+
+  // Used when the username is changed from the profile page.
+  updateUserName(name: string): void {
+    this.userName.set(name);
+  }
+
+  isAdmin(): boolean {
+    const role = this.getUserRole();
+
+    return role?.toLowerCase() === 'administrator';
+  }
+
+  getTokenExpiryTime(): number | null {
     const payload = this.getJwtPayload();
+
+    if (!payload || typeof payload.exp !== 'number') {
+      return null;
+    }
+
+    // JWT exp is in seconds. JavaScript Date.now() is in milliseconds.
+    return payload.exp * 1000;
+  }
+
+  private getUserNameFromToken(): string | null {
+    const payload = this.getJwtPayload();
+
     if (!payload) return null;
 
     return payload.name ||
       payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] ||
       null;
-  }
-
-  isAdmin(): boolean {
-    const role = this.getUserRole();
-    return role?.toLowerCase() === 'admin';
   }
 
   private getJwtPayload(): any {

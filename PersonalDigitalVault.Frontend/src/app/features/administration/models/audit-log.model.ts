@@ -1,9 +1,10 @@
 export interface AuditLog {
-  id: string;
-  userId: string;
-  userEmail: string;
+  auditLogId: number;
+  userId: number | null;
   action: string;
-  details?: string;
-  ipAddress: string;
-  timestamp: string;
+  entityType: string;
+  entityId: number | null;
+  details: string | null;
+  ipAddress: string | null;
+  createdAt: string;
 }

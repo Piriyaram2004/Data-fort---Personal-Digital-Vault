@@ -53,6 +53,13 @@ export class PublicSharingService {
     );
   }
 
+  // DELETE /api/share-links/{id}
+deleteShareLink(id: number): Observable<void> {
+  return this.http.delete<void>(
+    `${this.apiUrl}/share-links/${id}`
+  );
+}
+
   // GET /api/public/share/{token}
   getPublicFileDetails(
     token: string

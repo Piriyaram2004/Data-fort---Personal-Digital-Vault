@@ -1,9 +1,5 @@
-import {
-  Component,
-  OnInit,
-  inject,
-  ChangeDetectorRef
-} from '@angular/core';
+import { NavbarComponent } from '../../../../shared/components/navbar/navbar.component';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 
 import {
   FormBuilder,
@@ -16,18 +12,20 @@ import { RouterLink } from '@angular/router';
 
 import { AuthService } from '../../services/auth.service';
 import { UserProfile } from '../../models/profile.model';
+import { TokenService } from '../../../../core/services/token.service';
 
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [NavbarComponent, ReactiveFormsModule, RouterLink],
   templateUrl: './profile.component.html',
-  styleUrl: './profile.component.css'
+  styleUrl: './profile.component.css',
 })
 export class ProfileComponent implements OnInit {
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
   private cdr = inject(ChangeDetectorRef);
+  private tokenService = inject(TokenService);
 
   profile: UserProfile | null = null;
 
@@ -41,7 +39,7 @@ export class ProfileComponent implements OnInit {
   profileForm: FormGroup = this.fb.group({
     username: ['', [Validators.required]],
     email: ['', [Validators.required, Validators.email]],
-    fullName: ['', [Validators.required]]
+    fullName: ['', [Validators.required]],
   });
 
   ngOnInit(): void {
@@ -59,7 +57,7 @@ export class ProfileComponent implements OnInit {
         this.profileForm.patchValue({
           username: res.userName,
           email: res.email,
-          fullName: res.fullName
+          fullName: res.fullName,
         });
 
         this.isLoading = false;
@@ -74,46 +72,49 @@ export class ProfileComponent implements OnInit {
           err.error?.message || 'Failed to load user profile.';
 
         this.cdr.detectChanges();
-      }
+      },
     });
   }
 
   onSaveProfile(): void {
-  if (this.profileForm.invalid) {
-    this.profileForm.markAllAsTouched();
-    return;
-  }
-
-  this.isSaving = true;
-  this.successMessage = '';
-  this.errorMessage = '';
-
-  this.authService.updateProfile(this.profileForm.value).subscribe({
-    next: (res) => {
-      this.isSaving = false;
-
-      this.profile = res;
-
-      this.successMessage = 'Profile updated successfully.';
-      this.isUpdated = true;
-
-      this.profileForm.patchValue({
-        username: res.userName,
-        fullName: res.fullName,
-        email: res.email
-      });
-
-      this.cdr.detectChanges();
-    },
-
-    error: (err) => {
-      this.isSaving = false;
-
-      this.errorMessage =
-        err.error?.message || 'Error saving profile.';
-
-      this.cdr.detectChanges();
+    if (this.profileForm.invalid) {
+      this.profileForm.markAllAsTouched();
+      return;
     }
-  });
+
+    this.isSaving = true;
+    this.successMessage = '';
+    this.errorMessage = '';
+
+    this.authService.updateProfile(this.profileForm.value).subscribe({
+      next: (res) => {
+        this.isSaving = false;
+
+        this.profile = res;
+
+        // Update the username immediately in the shared TokenService.
+        this.tokenService.updateUserName(res.userName);
+
+        this.successMessage = 'Profile updated successfully.';
+        this.isUpdated = true;
+
+        this.profileForm.patchValue({
+          username: res.userName,
+          fullName: res.fullName,
+          email: res.email,
+        });
+
+        this.cdr.detectChanges();
+      },
+
+      error: (err) => {
+        this.isSaving = false;
+
+        this.errorMessage =
+          err.error?.message || 'Error saving profile.';
+
+        this.cdr.detectChanges();
+      },
+    });
   }
 }
