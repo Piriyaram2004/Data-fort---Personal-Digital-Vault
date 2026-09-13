@@ -1,12 +1,18 @@
 import { NavbarComponent } from '../../../../shared/components/navbar/navbar.component';
 import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  FormBuilder,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators
+} from '@angular/forms';
 
 import { RouterLink } from '@angular/router';
 
 import { AuthService } from '../../services/auth.service';
 import { UserProfile } from '../../models/profile.model';
+import { TokenService } from '../../../../core/services/token.service';
 
 @Component({
   selector: 'app-profile',
@@ -19,6 +25,7 @@ export class ProfileComponent implements OnInit {
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
   private cdr = inject(ChangeDetectorRef);
+  private tokenService = inject(TokenService);
 
   profile: UserProfile | null = null;
 
@@ -61,7 +68,8 @@ export class ProfileComponent implements OnInit {
       error: (err) => {
         this.isLoading = false;
 
-        this.errorMessage = err.error?.message || 'Failed to load user profile.';
+        this.errorMessage =
+          err.error?.message || 'Failed to load user profile.';
 
         this.cdr.detectChanges();
       },
@@ -84,6 +92,9 @@ export class ProfileComponent implements OnInit {
 
         this.profile = res;
 
+        // Update the username immediately in the shared TokenService.
+        this.tokenService.updateUserName(res.userName);
+
         this.successMessage = 'Profile updated successfully.';
         this.isUpdated = true;
 
@@ -99,7 +110,8 @@ export class ProfileComponent implements OnInit {
       error: (err) => {
         this.isSaving = false;
 
-        this.errorMessage = err.error?.message || 'Error saving profile.';
+        this.errorMessage =
+          err.error?.message || 'Error saving profile.';
 
         this.cdr.detectChanges();
       },
