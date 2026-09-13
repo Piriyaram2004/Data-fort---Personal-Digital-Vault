@@ -1,3 +1,4 @@
+import { AuthSceneComponent } from '../../../../shared/components/auth-scene/auth-scene.component';
 import { ChangeDetectorRef, Component, inject } from '@angular/core';
 import {
   AbstractControl,
@@ -5,7 +6,7 @@ import {
   FormGroup,
   ReactiveFormsModule,
   ValidationErrors,
-  Validators
+  Validators,
 } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -13,9 +14,9 @@ import { AuthService } from '../../services/auth.service';
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [AuthSceneComponent, ReactiveFormsModule, RouterLink],
   templateUrl: './register.component.html',
-  styleUrl: './register.component.css'
+  styleUrl: './register.component.css',
 })
 export class RegisterComponent {
   private fb = inject(FormBuilder);
@@ -43,25 +44,22 @@ export class RegisterComponent {
       fullName: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
-      confirmPassword: ['', Validators.required]
+      confirmPassword: ['', Validators.required],
     },
     {
-      validators: this.passwordMatchValidator
-    }
+      validators: this.passwordMatchValidator,
+    },
   );
 
-  passwordMatchValidator(
-    control: AbstractControl
-  ): ValidationErrors | null {
+  passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
     const password = control.get('password')?.value;
     const confirmPassword = control.get('confirmPassword')?.value;
 
-    return password === confirmPassword
-      ? null
-      : { passwordMismatch: true };
+    return password === confirmPassword ? null : { passwordMismatch: true };
   }
 
   onRegister(): void {
+    if (this.isLoading) return;
     if (this.registerForm.invalid) {
       this.registerForm.markAllAsTouched();
       return;
@@ -75,8 +73,7 @@ export class RegisterComponent {
       next: () => {
         this.isLoading = false;
 
-        this.successMessage =
-          'Please check your email and verify your account.';
+        this.successMessage = 'Please check your email and verify your account.';
 
         this.cdr.detectChanges();
       },
@@ -84,12 +81,10 @@ export class RegisterComponent {
       error: (err) => {
         this.isLoading = false;
 
-        this.errorMessage =
-          err.error?.message ||
-          'Server error during registration.';
+        this.errorMessage = err.error?.message || 'Server error during registration.';
 
         this.cdr.detectChanges();
-      }
+      },
     });
   }
 }

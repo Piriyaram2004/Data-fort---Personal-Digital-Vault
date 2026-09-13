@@ -1,87 +1,218 @@
-import { Component, OnInit, inject } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import {
+  Component,
+  OnInit,
+  inject
+} from '@angular/core';
+
+import {
+  FormBuilder,
+  ReactiveFormsModule,
+  Validators
+} from '@angular/forms';
+
+import {
+  ActivatedRoute,
+  Router,
+  RouterLink
+} from '@angular/router';
+
 import { FolderService } from '../../../services/folder.service';
+
+import {
+  CreateFolderRequest,
+  UpdateFolderRequest
+} from '../../../models/folder.model';
 
 @Component({
   selector: 'app-folder-form',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [
+    ReactiveFormsModule,
+    RouterLink
+  ],
   templateUrl: './folder-form.component.html',
   styleUrl: './folder-form.component.css'
 })
 export class FolderFormComponent implements OnInit {
+
   private fb = inject(FormBuilder);
   private folderService = inject(FolderService);
-  private router = inject(Router);
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
+
+  folderId: number | null = null;
 
   isEditMode = false;
-  folderId: string | null = null;
   isLoading = false;
+
   errorMessage = '';
 
-  folderForm: FormGroup = this.fb.group({
-    name: ['', [Validators.required, Validators.minLength(2)]],
+  folderForm = this.fb.nonNullable.group({
+    name: ['', [Validators.required, Validators.maxLength(255)]],
     description: ['']
   });
 
   ngOnInit(): void {
-    this.folderId = this.route.snapshot.paramMap.get('id');
-    if (this.folderId) {
+
+    const id = this.route.snapshot.paramMap.get('id');
+
+    if (id) {
+
+      this.folderId = Number(id);
       this.isEditMode = true;
-      this.loadFolderDetails(this.folderId);
+
+      this.loadFolder();
     }
   }
 
-  loadFolderDetails(id: string): void {
+  loadFolder(): void {
+
+    if (this.folderId === null) {
+      return;
+    }
+
     this.isLoading = true;
-    this.folderService.getFolderById(id).subscribe({
-      next: (res) => {
+    this.errorMessage = '';
+
+    this.folderService.getFolders().subscribe({
+
+      next: (response) => {
+
         this.isLoading = false;
-        if (res.success && res.data) {
-          this.folderForm.patchValue({
-            name: res.data.name,
-            description: res.data.description
-          });
+
+        const folder = response.find(
+          f => f.folderId === this.folderId
+        );
+
+        if (!folder) {
+
+          this.errorMessage = 'Folder not found.';
+          return;
         }
+
+        this.folderForm.patchValue({
+          name: folder.folderName,
+          description: folder.description ?? ''
+        });
       },
+
       error: () => {
+
         this.isLoading = false;
+        this.errorMessage =
+          'Unable to load folder.';
       }
     });
   }
 
   onSubmit(): void {
-    if (this.folderForm.invalid) return;
 
-    this.isLoading = true;
+    if (this.folderForm.invalid) {
+
+      this.folderForm.markAllAsTouched();
+      return;
+    }
+
+    this.saveFolder();
+  }
+
+  saveFolder(): void {
+
     this.errorMessage = '';
 
-    const payload = this.folderForm.value;
+    const formValue = this.folderForm.getRawValue();
 
-    if (this.isEditMode && this.folderId) {
-      this.folderService.updateFolder(this.folderId, payload).subscribe({
-        next: () => {
-          this.isLoading = false;
-          this.router.navigate(['/vault/folders']);
-        },
-        error: (err) => {
-          this.isLoading = false;
-          this.errorMessage = err.error?.message || 'Error updating folder.';
-        }
-      });
+    const folderName = formValue.name.trim();
+
+    const description =
+      formValue.description.trim() || null;
+
+    if (!folderName) {
+
+      this.errorMessage =
+        'Folder name is required.';
+
+      return;
+    }
+
+    this.isLoading = true;
+
+    if (
+      this.isEditMode &&
+      this.folderId !== null
+    ) {
+
+      const payload: UpdateFolderRequest = {
+        folderName,
+        description
+      };
+
+      this.folderService
+        .updateFolder(
+          this.folderId,
+          payload
+        )
+        .subscribe({
+
+          next: () => {
+
+            this.router.navigate([
+              '/vault/folders'
+            ]);
+          },
+
+          error: (error) => {
+
+            this.isLoading = false;
+
+            if (error.status === 409) {
+
+              this.errorMessage =
+                'A folder with this name already exists.';
+
+            } else {
+
+              this.errorMessage =
+                'Unable to update folder.';
+            }
+          }
+        });
+
     } else {
-      this.folderService.createFolder(payload).subscribe({
-        next: () => {
-          this.isLoading = false;
-          this.router.navigate(['/vault/folders']);
-        },
-        error: (err) => {
-          this.isLoading = false;
-          this.errorMessage = err.error?.message || 'Error creating folder.';
-        }
-      });
+
+      const payload: CreateFolderRequest = {
+        folderName,
+        parentFolderId: null,
+        description
+      };
+
+      this.folderService
+        .createFolder(payload)
+        .subscribe({
+
+          next: () => {
+
+            this.router.navigate([
+              '/vault/folders'
+            ]);
+          },
+
+          error: (error) => {
+
+            this.isLoading = false;
+
+            if (error.status === 409) {
+
+              this.errorMessage =
+                'A folder with this name already exists.';
+
+            } else {
+
+              this.errorMessage =
+                'Unable to create folder.';
+            }
+          }
+        });
     }
   }
 }

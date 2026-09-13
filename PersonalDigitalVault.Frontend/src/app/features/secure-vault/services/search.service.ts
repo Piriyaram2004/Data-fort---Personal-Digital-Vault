@@ -2,15 +2,32 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
-import { ApiResponse } from '../../../core/models/api-response.model';
-import { DocumentItem } from '../models/document.model';
-import { CredentialItem } from '../models/credential.model';
-import { Folder } from '../models/folder.model';
+
+export interface SearchFolderResult {
+  folderId: number;
+  folderName: string;
+  description: string | null;
+}
+
+export interface SearchDocumentResult {
+  documentId: number;
+  folderId: number | null;
+  originalFileName: string;
+  fileType: string;
+}
+
+export interface SearchCredentialResult {
+  credentialId: number;
+  folderId: number | null;
+  title: string;
+  userName: string;
+  notes: string | null;
+}
 
 export interface VaultSearchResults {
-  folders: Folder[];
-  documents: DocumentItem[];
-  credentials: CredentialItem[];
+  folders: SearchFolderResult[];
+  documents: SearchDocumentResult[];
+  credentials: SearchCredentialResult[];
 }
 
 @Injectable({
@@ -18,10 +35,13 @@ export interface VaultSearchResults {
 })
 export class SearchService {
   private http = inject(HttpClient);
+
   private apiUrl = `${environment.apiUrl}/search`;
 
-  // Endpoint: GET /api/search?q=query
-  searchVault(query: string): Observable<ApiResponse<VaultSearchResults>> {
-    return this.http.get<ApiResponse<VaultSearchResults>>(`${this.apiUrl}?q=${encodeURIComponent(query)}`);
+  // Endpoint: GET /api/search?searchTerm=query
+  searchVault(searchTerm: string): Observable<VaultSearchResults> {
+    return this.http.get<VaultSearchResults>(
+      `${this.apiUrl}?searchTerm=${encodeURIComponent(searchTerm)}`
+    );
   }
 }

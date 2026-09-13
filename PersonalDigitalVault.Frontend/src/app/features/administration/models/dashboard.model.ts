@@ -1,8 +1,9 @@
-export interface DashboardStats {
+export interface DashboardModel {
   totalUsers: number;
+  activeUsers: number;
   totalFolders: number;
   totalDocuments: number;
   totalCredentials: number;
-  totalStorageSizeBytes: number;
-  activeShareLinks: number;
+  totalShareLinks: number;
+  totalAuditLogs: number;
 }

@@ -1,4 +1,5 @@
-import { Component, inject } from '@angular/core';
+import { NavigationService } from '../../../core/services/navigation.service';
+import { Component, inject, Input } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { TokenService } from '../../../core/services/token.service';
 
@@ -7,9 +8,11 @@ import { TokenService } from '../../../core/services/token.service';
   standalone: true,
   imports: [RouterLink],
   templateUrl: './navbar.component.html',
-  styleUrl: './navbar.component.css'
+  styleUrl: './navbar.component.css',
 })
 export class NavbarComponent {
+  @Input() showMenu = true;
+  readonly navigation = inject(NavigationService);
   private tokenService = inject(TokenService);
   private router = inject(Router);
 

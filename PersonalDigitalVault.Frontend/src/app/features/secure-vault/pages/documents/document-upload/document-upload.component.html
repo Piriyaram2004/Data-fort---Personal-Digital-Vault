@@ -30,9 +30,11 @@
         class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-blue-500"
       >
         <option value="">-- No Folder (Root Vault) --</option>
-        @for (folder of folders; track folder.id) {
-          <option [value]="folder.id">{{ folder.name }}</option>
-        }
+      @for (folder of folders; track folder.folderId) {
+  <option [value]="folder.folderId">
+    {{ folder.folderName }}
+  </option>
+}
       </select>
     </div>
 

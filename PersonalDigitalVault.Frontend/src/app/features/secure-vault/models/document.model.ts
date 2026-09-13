@@ -1,17 +1,17 @@
 export interface DocumentItem {
-  id: string;
-  fileName: string;
+  documentId: number;
+  userId: number;
+  folderId: number | null;
+  originalFileName: string;
   fileType: string;
-  fileSizeBytes: number;
-  folderId?: string;
-  folderName?: string;
+  fileSize: number;
   sha256Hash: string;
-  integrityVerified: boolean;
-  uploadedAt: string;
+  isEncrypted: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface UploadDocumentRequest {
   file: File;
-  folderId?: string;
-  description?: string;
+  folderId: number | null;
 }

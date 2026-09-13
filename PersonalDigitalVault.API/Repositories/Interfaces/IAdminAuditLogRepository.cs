@@ -5,5 +5,6 @@ namespace PersonalDigitalVault.API.Repositories.Interfaces
     public interface IAdminAuditLogRepository
     {
         Task<List<AuditLog>> GetAllAsync();
+        Task AddAsync(AuditLog auditLog);
     }
 }

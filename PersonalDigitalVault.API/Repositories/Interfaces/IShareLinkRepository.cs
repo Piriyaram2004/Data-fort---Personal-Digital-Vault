@@ -14,6 +14,8 @@ namespace PersonalDigitalVault.API.Repositories.Interfaces
 
         Task UpdateAsync(ShareLink shareLink);
 
+        Task DeleteAsync(ShareLink shareLink);
+
         Task<ShareLink?> GetByTokenAsync(string token);
     }
 }

@@ -1,12 +1,27 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  FormBuilder,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators
+} from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+
 import { CredentialService } from '../../../services/credential.service';
+
+import {
+  CredentialItem,
+  CreateCredentialRequest,
+  UpdateCredentialRequest
+} from '../../../models/credential.model';
 
 @Component({
   selector: 'app-credential-form',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [
+    ReactiveFormsModule,
+    RouterLink
+  ],
   templateUrl: './credential-form.component.html',
   styleUrl: './credential-form.component.css'
 })
@@ -17,75 +32,150 @@ export class CredentialFormComponent implements OnInit {
   private route = inject(ActivatedRoute);
 
   isEditMode = false;
-  credentialId: string | null = null;
+
+  credentialId: number | null = null;
+
   isLoading = false;
   errorMessage = '';
 
   credentialForm: FormGroup = this.fb.group({
-    serviceName: ['', [Validators.required]],
-    username: ['', [Validators.required]],
-    secretValue: ['', [Validators.required]],
+    folderId: [null],
+    title: ['', [Validators.required]],
+    userName: ['', [Validators.required]],
+    password: ['', [Validators.required]],
     notes: ['']
   });
 
   ngOnInit(): void {
-    this.credentialId = this.route.snapshot.paramMap.get('id');
-    if (this.credentialId) {
-      this.isEditMode = true;
-      this.loadCredentialDetails(this.credentialId);
+    const id = this.route.snapshot.paramMap.get('id');
+
+    if (!id) {
+      return;
     }
+
+    const parsedId = Number(id);
+
+    if (!Number.isInteger(parsedId) || parsedId <= 0) {
+      this.errorMessage = 'Invalid credential ID.';
+      return;
+    }
+
+    this.credentialId = parsedId;
+    this.isEditMode = true;
+
+    this.loadCredentialDetails(parsedId);
   }
 
-  loadCredentialDetails(id: string): void {
+  loadCredentialDetails(id: number): void {
     this.isLoading = true;
-    this.credentialService.getCredentialById(id).subscribe({
-      next: (res) => {
-        this.isLoading = false;
-        if (res.success && res.data) {
-          this.credentialForm.patchValue({
-            serviceName: res.data.serviceName,
-            username: res.data.username,
-            secretValue: res.data.secretValue || '',
-            notes: res.data.notes || ''
-          });
+    this.errorMessage = '';
+
+    this.credentialService.getCredentials().subscribe({
+      next: (credentials: CredentialItem[]) => {
+        const credential = credentials.find(
+          item => item.credentialId === id
+        );
+
+        if (!credential) {
+          this.errorMessage = 'Credential not found.';
+          this.isLoading = false;
+          return;
         }
-      },
-      error: () => {
+
+        this.credentialForm.patchValue({
+          folderId: credential.folderId,
+          title: credential.title,
+          userName: credential.userName,
+          password: credential.password,
+          notes: credential.notes ?? ''
+        });
+
         this.isLoading = false;
+      },
+
+      error: (error) => {
+        console.error(
+          'Failed to load credential:',
+          error
+        );
+
+        this.isLoading = false;
+        this.errorMessage = 'Unable to load credential.';
       }
     });
   }
 
   onSubmit(): void {
-    if (this.credentialForm.invalid) return;
+    if (this.credentialForm.invalid) {
+      this.credentialForm.markAllAsTouched();
+      return;
+    }
 
     this.isLoading = true;
     this.errorMessage = '';
 
-    const payload = this.credentialForm.value;
+    const formValue = this.credentialForm.getRawValue();
 
-    if (this.isEditMode && this.credentialId) {
-      this.credentialService.updateCredential(this.credentialId, payload).subscribe({
-        next: () => {
-          this.isLoading = false;
-          this.router.navigate(['/vault/credentials']);
-        },
-        error: (err) => {
-          this.isLoading = false;
-          this.errorMessage = err.error?.message || 'Error updating credential.';
-        }
-      });
-    } else {
-      this.credentialService.createCredential(payload).subscribe({
-        next: () => {
-          this.isLoading = false;
-          this.router.navigate(['/vault/credentials']);
-        },
-        error: (err) => {
-          this.isLoading = false;
-          this.errorMessage = err.error?.message || 'Error creating credential.';
-        }
-      });
+    if (this.isEditMode && this.credentialId !== null) {
+      const updateRequest: UpdateCredentialRequest = {
+        folderId: formValue.folderId ?? null,
+        title: formValue.title,
+        userName: formValue.userName,
+        password: formValue.password,
+        notes: formValue.notes || null
+      };
+
+      this.credentialService
+        .updateCredential(this.credentialId, updateRequest)
+        .subscribe({
+          next: () => {
+            this.isLoading = false;
+            this.router.navigate(['/vault/credentials']);
+          },
+
+          error: (error) => {
+            console.error(
+              'Failed to update credential:',
+              error
+            );
+
+            this.isLoading = false;
+            this.errorMessage =
+              error.error?.message ||
+              'Error updating credential.';
+          }
+        });
+
+      return;
     }
+
+    const createRequest: CreateCredentialRequest = {
+      folderId: formValue.folderId ?? null,
+      title: formValue.title,
+      userName: formValue.userName,
+      password: formValue.password,
+      notes: formValue.notes || null
+    };
+
+    this.credentialService
+      .createCredential(createRequest)
+      .subscribe({
+        next: () => {
+          this.isLoading = false;
+          this.router.navigate(['/vault/credentials']);
+        },
+
+        error: (error) => {
+          console.error(
+            'Failed to create credential:',
+            error
+          );
+
+          this.isLoading = false;
+          this.errorMessage =
+            error.error?.message ||
+            'Error creating credential.';
+        }
+      });
   }
 }

@@ -1,6 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+
 import { DocumentService } from '../../../services/document.service';
 import { FolderService } from '../../../services/folder.service';
 import { Folder } from '../../../models/folder.model';
@@ -20,12 +21,12 @@ export class DocumentUploadComponent implements OnInit {
 
   folders: Folder[] = [];
   selectedFile: File | null = null;
+
   isLoading = false;
   errorMessage = '';
 
   uploadForm: FormGroup = this.fb.group({
-    folderId: [''],
-    description: ['']
+    folderId: ['']
   });
 
   ngOnInit(): void {
@@ -34,16 +35,18 @@ export class DocumentUploadComponent implements OnInit {
 
   loadFolders(): void {
     this.folderService.getFolders().subscribe({
-      next: (res) => {
-        if (res.success && res.data) {
-          this.folders = res.data;
-        }
+      next: (folders) => {
+        this.folders = folders;
+      },
+      error: () => {
+        this.folders = [];
       }
     });
   }
 
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
+
     if (input.files && input.files.length > 0) {
       this.selectedFile = input.files[0];
     }
@@ -59,26 +62,27 @@ export class DocumentUploadComponent implements OnInit {
     this.errorMessage = '';
 
     const formData = new FormData();
+
     formData.append('file', this.selectedFile);
-    if (this.uploadForm.value.folderId) {
-      formData.append('folderId', this.uploadForm.value.folderId);
-    }
-    if (this.uploadForm.value.description) {
-      formData.append('description', this.uploadForm.value.description);
+
+    const folderId = this.uploadForm.value.folderId;
+
+    if (folderId) {
+      formData.append('folderId', folderId);
     }
 
     this.documentService.uploadDocument(formData).subscribe({
-      next: (res) => {
+      next: () => {
         this.isLoading = false;
-        if (res.success) {
-          this.router.navigate(['/vault/documents']);
-        } else {
-          this.errorMessage = res.message || 'Upload failed.';
-        }
+        this.router.navigate(['/vault/documents']);
       },
-      error: (err) => {
+      error: (error) => {
         this.isLoading = false;
-        this.errorMessage = err.error?.message || 'Error uploading file.';
+
+        console.error('Failed to upload document:', error);
+
+        this.errorMessage =
+          error.error?.message || 'Error uploading file.';
       }
     });
   }

@@ -1,1 +1,3 @@
-/* Register component styles */
+:host {
+  display: block;
+}

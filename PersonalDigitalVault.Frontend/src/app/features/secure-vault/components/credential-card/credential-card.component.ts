@@ -1,4 +1,5 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
+
 import { CredentialItem } from '../../models/credential.model';
 
 @Component({
@@ -9,8 +10,9 @@ import { CredentialItem } from '../../models/credential.model';
 })
 export class CredentialCardComponent {
   @Input() credential!: CredentialItem;
+
   @Output() edit = new EventEmitter<CredentialItem>();
-  @Output() delete = new EventEmitter<string>();
+  @Output() delete = new EventEmitter<number>();
 
   showSecret = false;
   copied = false;
@@ -20,9 +22,13 @@ export class CredentialCardComponent {
   }
 
   copyUsername(): void {
-    navigator.clipboard.writeText(this.credential.username);
+    navigator.clipboard.writeText(this.credential.userName);
+
     this.copied = true;
-    setTimeout(() => (this.copied = false), 2000);
+
+    setTimeout(() => {
+      this.copied = false;
+    }, 2000);
   }
 
   onEdit(): void {
@@ -30,6 +36,6 @@ export class CredentialCardComponent {
   }
 
   onDelete(): void {
-    this.delete.emit(this.credential.id);
+    this.delete.emit(this.credential.credentialId);
   }
 }

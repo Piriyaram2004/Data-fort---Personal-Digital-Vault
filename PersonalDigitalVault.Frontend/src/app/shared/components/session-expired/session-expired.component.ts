@@ -14,7 +14,7 @@ import { SessionExpiredService } from '../../services/session-expired.service';
       >
         <div
           class="w-full max-w-md rounded-2xl border border-slate-600
-                 bg-slate-800 p-8 text-center shadow-2xl"
+                 df-glass p-8 text-center shadow-2xl"
         >
           <div
             class="mx-auto mb-5 flex h-16 w-16 items-center justify-center
@@ -23,11 +23,9 @@ import { SessionExpiredService } from '../../services/session-expired.service';
             DF
           </div>
 
-          <h2 class="text-2xl font-bold text-white">
-            Your Session Has Expired
-          </h2>
+          <h2 class="text-2xl font-bold text-slate-900">Your Session Has Expired</h2>
 
-          <p class="mt-3 text-sm leading-6 text-slate-300">
+          <p class="mt-3 text-sm leading-6 text-slate-600">
             Your session has expired. Please log in again to continue.
           </p>
 
@@ -43,10 +41,9 @@ import { SessionExpiredService } from '../../services/session-expired.service';
         </div>
       </div>
     }
-  `
+  `,
 })
 export class SessionExpiredComponent {
-
   protected readonly sessionExpiredService = inject(SessionExpiredService);
   private readonly tokenService = inject(TokenService);
   private readonly router = inject(Router);

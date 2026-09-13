@@ -1,5 +1,12 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  Output
+} from '@angular/core';
+
 import { RouterLink } from '@angular/router';
+
 import { Folder } from '../../models/folder.model';
 
 @Component({
@@ -10,17 +17,24 @@ import { Folder } from '../../models/folder.model';
   styleUrl: './folder-card.component.css'
 })
 export class FolderCardComponent {
+
   @Input() folder!: Folder;
+
   @Output() edit = new EventEmitter<Folder>();
-  @Output() delete = new EventEmitter<string>();
+
+  @Output() delete = new EventEmitter<number>();
 
   onEdit(event: Event): void {
+
     event.stopPropagation();
+
     this.edit.emit(this.folder);
   }
 
   onDelete(event: Event): void {
+
     event.stopPropagation();
-    this.delete.emit(this.folder.id);
+
+    this.delete.emit(this.folder.folderId);
   }
 }
